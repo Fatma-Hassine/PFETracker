@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-04-30T22:14:42+0200",
-    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 21.0.9 (Oracle Corporation)"
+    date = "2026-05-01T00:36:05+0200",
+    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.46.0.v20260407-0427, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
 public class MeetingMapperImpl implements MeetingMapper {
@@ -23,23 +23,25 @@ public class MeetingMapperImpl implements MeetingMapper {
 
         MeetingDTO.MeetingDTOBuilder meetingDTO = MeetingDTO.builder();
 
-        meetingDTO.id( meeting.getId() );
-        meetingDTO.title( meeting.getTitle() );
-        meetingDTO.description( meeting.getDescription() );
-        meetingDTO.meetingDate( meeting.getMeetingDate() );
-        meetingDTO.duration( meeting.getDuration() );
+        meetingDTO.createdAt( meeting.getCreatedAt() );
         meetingDTO.createdBy( meeting.getCreatedBy() );
-        meetingDTO.participantId( meeting.getParticipantId() );
-        meetingDTO.pfeId( meeting.getPfeId() );
-        meetingDTO.status( meeting.getStatus() );
-        meetingDTO.meetingLink( meeting.getMeetingLink() );
-        meetingDTO.meetProvider( meeting.getMeetProvider() );
+        meetingDTO.description( meeting.getDescription() );
+        meetingDTO.duration( meeting.getDuration() );
+        meetingDTO.id( meeting.getId() );
         meetingDTO.isOnline( meeting.getIsOnline() );
         meetingDTO.location( meeting.getLocation() );
-        meetingDTO.createdAt( meeting.getCreatedAt() );
-        meetingDTO.updatedAt( meeting.getUpdatedAt() );
-        meetingDTO.report( meeting.getReport() );
+        meetingDTO.meetProvider( meeting.getMeetProvider() );
+        meetingDTO.meetingDate( meeting.getMeetingDate() );
+        meetingDTO.meetingLink( meeting.getMeetingLink() );
+        meetingDTO.participantId( meeting.getParticipantId() );
+        meetingDTO.pfeId( meeting.getPfeId() );
         meetingDTO.rejectionReason( meeting.getRejectionReason() );
+        meetingDTO.reminderSent15min( meeting.getReminderSent15min() );
+        meetingDTO.reminderSent24h( meeting.getReminderSent24h() );
+        meetingDTO.report( meeting.getReport() );
+        meetingDTO.status( meeting.getStatus() );
+        meetingDTO.title( meeting.getTitle() );
+        meetingDTO.updatedAt( meeting.getUpdatedAt() );
 
         return meetingDTO.build();
     }
@@ -66,23 +68,25 @@ public class MeetingMapperImpl implements MeetingMapper {
 
         Meeting.MeetingBuilder meeting = Meeting.builder();
 
-        meeting.id( dto.getId() );
-        meeting.title( dto.getTitle() );
-        meeting.description( dto.getDescription() );
-        meeting.meetingDate( dto.getMeetingDate() );
-        meeting.duration( dto.getDuration() );
+        meeting.createdAt( dto.getCreatedAt() );
         meeting.createdBy( dto.getCreatedBy() );
-        meeting.participantId( dto.getParticipantId() );
-        meeting.pfeId( dto.getPfeId() );
-        meeting.status( dto.getStatus() );
-        meeting.meetingLink( dto.getMeetingLink() );
-        meeting.meetProvider( dto.getMeetProvider() );
+        meeting.description( dto.getDescription() );
+        meeting.duration( dto.getDuration() );
+        meeting.id( dto.getId() );
         meeting.isOnline( dto.getIsOnline() );
         meeting.location( dto.getLocation() );
-        meeting.createdAt( dto.getCreatedAt() );
-        meeting.updatedAt( dto.getUpdatedAt() );
-        meeting.report( dto.getReport() );
+        meeting.meetProvider( dto.getMeetProvider() );
+        meeting.meetingDate( dto.getMeetingDate() );
+        meeting.meetingLink( dto.getMeetingLink() );
+        meeting.participantId( dto.getParticipantId() );
+        meeting.pfeId( dto.getPfeId() );
         meeting.rejectionReason( dto.getRejectionReason() );
+        meeting.reminderSent15min( dto.getReminderSent15min() );
+        meeting.reminderSent24h( dto.getReminderSent24h() );
+        meeting.report( dto.getReport() );
+        meeting.status( dto.getStatus() );
+        meeting.title( dto.getTitle() );
+        meeting.updatedAt( dto.getUpdatedAt() );
 
         return meeting.build();
     }

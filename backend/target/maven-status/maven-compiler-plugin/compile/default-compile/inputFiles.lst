@@ -59,6 +59,7 @@ C:\Users\Warda Guesmi\Bureau\PFETracker\backend\src\main\java\com\pfetracker\exc
 C:\Users\Warda Guesmi\Bureau\PFETracker\backend\src\main\java\com\pfetracker\entity\module3\enums\UserRole.java
 C:\Users\Warda Guesmi\Bureau\PFETracker\backend\src\main\java\com\pfetracker\scheduler\module3\MeetingReminderScheduler.java
 C:\Users\Warda Guesmi\Bureau\PFETracker\backend\src\main\java\com\pfetracker\controller\module3\MeetingController.java
+C:\Users\Warda Guesmi\Bureau\PFETracker\backend\src\main\java\com\pfetracker\PfetrackerApplication.java
 C:\Users\Warda Guesmi\Bureau\PFETracker\backend\src\main\java\com\pfetracker\websocket\module3\ChatWebSocketController.java
 C:\Users\Warda Guesmi\Bureau\PFETracker\backend\src\main\java\com\pfetracker\dto\module3\MeetingDTO.java
 C:\Users\Warda Guesmi\Bureau\PFETracker\backend\src\main\java\com\pfetracker\controller\module3\DashboardController.java

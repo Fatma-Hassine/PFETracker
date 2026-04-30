@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-04-30T22:14:49+0200",
-    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 21.0.9 (Oracle Corporation)"
+    date = "2026-05-01T00:36:04+0200",
+    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.46.0.v20260407-0427, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
 public class CommentMapperImpl implements CommentMapper {
@@ -23,18 +23,18 @@ public class CommentMapperImpl implements CommentMapper {
 
         CommentDTO.CommentDTOBuilder commentDTO = CommentDTO.builder();
 
-        commentDTO.id( comment.getId() );
-        commentDTO.taskId( comment.getTaskId() );
-        commentDTO.userId( comment.getUserId() );
+        commentDTO.attachmentUrl( comment.getAttachmentUrl() );
         commentDTO.content( comment.getContent() );
         commentDTO.createdAt( comment.getCreatedAt() );
-        commentDTO.updatedAt( comment.getUpdatedAt() );
-        commentDTO.parentId( comment.getParentId() );
+        commentDTO.id( comment.getId() );
         List<Long> list = comment.getMentionedUserIds();
         if ( list != null ) {
             commentDTO.mentionedUserIds( new ArrayList<Long>( list ) );
         }
-        commentDTO.attachmentUrl( comment.getAttachmentUrl() );
+        commentDTO.parentId( comment.getParentId() );
+        commentDTO.taskId( comment.getTaskId() );
+        commentDTO.updatedAt( comment.getUpdatedAt() );
+        commentDTO.userId( comment.getUserId() );
 
         return commentDTO.build();
     }
@@ -61,18 +61,18 @@ public class CommentMapperImpl implements CommentMapper {
 
         Comment.CommentBuilder comment = Comment.builder();
 
-        comment.id( dto.getId() );
-        comment.taskId( dto.getTaskId() );
-        comment.userId( dto.getUserId() );
+        comment.attachmentUrl( dto.getAttachmentUrl() );
         comment.content( dto.getContent() );
         comment.createdAt( dto.getCreatedAt() );
-        comment.updatedAt( dto.getUpdatedAt() );
-        comment.parentId( dto.getParentId() );
+        comment.id( dto.getId() );
         List<Long> list = dto.getMentionedUserIds();
         if ( list != null ) {
             comment.mentionedUserIds( new ArrayList<Long>( list ) );
         }
-        comment.attachmentUrl( dto.getAttachmentUrl() );
+        comment.parentId( dto.getParentId() );
+        comment.taskId( dto.getTaskId() );
+        comment.updatedAt( dto.getUpdatedAt() );
+        comment.userId( dto.getUserId() );
 
         return comment.build();
     }

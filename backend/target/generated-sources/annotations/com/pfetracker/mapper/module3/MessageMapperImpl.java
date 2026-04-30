@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-04-30T22:14:47+0200",
-    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 21.0.9 (Oracle Corporation)"
+    date = "2026-05-01T00:36:03+0200",
+    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.46.0.v20260407-0427, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
 public class MessageMapperImpl implements MessageMapper {
@@ -23,16 +23,16 @@ public class MessageMapperImpl implements MessageMapper {
 
         MessageDTO.MessageDTOBuilder messageDTO = MessageDTO.builder();
 
+        messageDTO.attachmentName( message.getAttachmentName() );
+        messageDTO.attachmentUrl( message.getAttachmentUrl() );
+        messageDTO.content( message.getContent() );
+        messageDTO.createdAt( message.getCreatedAt() );
         messageDTO.id( message.getId() );
         messageDTO.pfeId( message.getPfeId() );
-        messageDTO.senderId( message.getSenderId() );
-        messageDTO.receiverId( message.getReceiverId() );
-        messageDTO.content( message.getContent() );
-        messageDTO.status( message.getStatus() );
-        messageDTO.createdAt( message.getCreatedAt() );
         messageDTO.readAt( message.getReadAt() );
-        messageDTO.attachmentUrl( message.getAttachmentUrl() );
-        messageDTO.attachmentName( message.getAttachmentName() );
+        messageDTO.receiverId( message.getReceiverId() );
+        messageDTO.senderId( message.getSenderId() );
+        messageDTO.status( message.getStatus() );
 
         return messageDTO.build();
     }
@@ -59,16 +59,16 @@ public class MessageMapperImpl implements MessageMapper {
 
         Message.MessageBuilder message = Message.builder();
 
+        message.attachmentName( dto.getAttachmentName() );
+        message.attachmentUrl( dto.getAttachmentUrl() );
+        message.content( dto.getContent() );
+        message.createdAt( dto.getCreatedAt() );
         message.id( dto.getId() );
         message.pfeId( dto.getPfeId() );
-        message.senderId( dto.getSenderId() );
-        message.receiverId( dto.getReceiverId() );
-        message.content( dto.getContent() );
-        message.status( dto.getStatus() );
-        message.createdAt( dto.getCreatedAt() );
         message.readAt( dto.getReadAt() );
-        message.attachmentUrl( dto.getAttachmentUrl() );
-        message.attachmentName( dto.getAttachmentName() );
+        message.receiverId( dto.getReceiverId() );
+        message.senderId( dto.getSenderId() );
+        message.status( dto.getStatus() );
 
         return message.build();
     }

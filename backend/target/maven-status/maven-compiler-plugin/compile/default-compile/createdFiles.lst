@@ -5,6 +5,7 @@ com\pfetracker\websocket\module3\NotificationWebSocketController$MeetingReminder
 com\pfetracker\dto\module3\DashboardSupervisorDTO$DashboardSupervisorDTOBuilder.class
 com\pfetracker\controller\module3\CommentController.class
 com\pfetracker\entity\module3\enums\NotificationType.class
+com\pfetracker\PfetrackerApplication.class
 com\pfetracker\dto\module3\MarkReadRequest.class
 com\pfetracker\entity\module3\Task.class
 com\pfetracker\websocket\module3\NotificationWebSocketController.class
@@ -81,7 +82,6 @@ com\pfetracker\entity\module3\enums\MessageStatus.class
 com\pfetracker\dto\module3\CommentDTO.class
 com\pfetracker\dto\module3\MeetingDTO$MeetingDTOBuilder.class
 com\pfetracker\scheduler\module3\MeetingReminderScheduler.class
-com\pfetracker\config\AsyncConfig.class
 com\pfetracker\entity\module3\PFE.class
 com\pfetracker\dto\module3\AlertDTO$AlertDTOBuilder.class
 com\pfetracker\repository\module3\CommentRepository.class

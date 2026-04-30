@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-04-30T22:14:50+0200",
-    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 21.0.9 (Oracle Corporation)"
+    date = "2026-05-01T00:36:04+0200",
+    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.46.0.v20260407-0427, environment: Java 21.0.10 (Eclipse Adoptium)"
 )
 @Component
 public class NotificationMapperImpl implements NotificationMapper {
@@ -23,17 +23,17 @@ public class NotificationMapperImpl implements NotificationMapper {
 
         NotificationDTO.NotificationDTOBuilder notificationDTO = NotificationDTO.builder();
 
-        notificationDTO.id( notification.getId() );
-        notificationDTO.userId( notification.getUserId() );
-        notificationDTO.message( notification.getMessage() );
-        notificationDTO.type( notification.getType() );
-        notificationDTO.isRead( notification.getIsRead() );
+        notificationDTO.actionUrl( notification.getActionUrl() );
         notificationDTO.createdAt( notification.getCreatedAt() );
+        notificationDTO.id( notification.getId() );
+        notificationDTO.isRead( notification.getIsRead() );
+        notificationDTO.message( notification.getMessage() );
         notificationDTO.readAt( notification.getReadAt() );
         notificationDTO.relatedId( notification.getRelatedId() );
         notificationDTO.relatedType( notification.getRelatedType() );
-        notificationDTO.actionUrl( notification.getActionUrl() );
         notificationDTO.sentByEmail( notification.getSentByEmail() );
+        notificationDTO.type( notification.getType() );
+        notificationDTO.userId( notification.getUserId() );
 
         return notificationDTO.build();
     }
@@ -60,17 +60,17 @@ public class NotificationMapperImpl implements NotificationMapper {
 
         Notification.NotificationBuilder notification = Notification.builder();
 
-        notification.id( dto.getId() );
-        notification.userId( dto.getUserId() );
-        notification.message( dto.getMessage() );
-        notification.type( dto.getType() );
-        notification.isRead( dto.getIsRead() );
+        notification.actionUrl( dto.getActionUrl() );
         notification.createdAt( dto.getCreatedAt() );
+        notification.id( dto.getId() );
+        notification.isRead( dto.getIsRead() );
+        notification.message( dto.getMessage() );
         notification.readAt( dto.getReadAt() );
         notification.relatedId( dto.getRelatedId() );
         notification.relatedType( dto.getRelatedType() );
-        notification.actionUrl( dto.getActionUrl() );
         notification.sentByEmail( dto.getSentByEmail() );
+        notification.type( dto.getType() );
+        notification.userId( dto.getUserId() );
 
         return notification.build();
     }

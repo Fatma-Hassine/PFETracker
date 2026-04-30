@@ -132,6 +132,8 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
+                    <!-- ✅ LIGNE AJOUTÉE -->
+                    <mainClass>com.pfetracker.PfetrackerApplication</mainClass>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>
