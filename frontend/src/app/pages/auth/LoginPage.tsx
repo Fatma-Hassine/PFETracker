@@ -2,20 +2,25 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useRole } from '../../contexts/RoleContext';
 import { Eye, EyeOff } from 'lucide-react';
+import authService from '../../../api/authService';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { login, role } = useRole();
+  const { login } = useRole();.
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState({ email: '', password: '' });
+  const [errors, setErrors] = useState({ email: '', password: '', form: '' });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const newErrors = { email: '', password: '' };
+    const newErrors = { email: '', password: '', form: '' };
     if (!email) newErrors.email = 'Email requis';
+
+    // Pour l'instant, le backend n'exige pas de mot de passe (Mock) 
+    // Mais on garde la validation frontend au cas où.
     if (!password) newErrors.password = 'Mot de passe requis';
 
     if (newErrors.email || newErrors.password) {
@@ -23,20 +28,30 @@ export function LoginPage() {
       return;
     }
 
-    login();
-    switch (role) {
-      case 'Étudiant':
-        navigate('/etudiant/dashboard');
-        break;
-      case 'Encadrant':
-        navigate('/encadrant/dashboard');
-        break;
-      case 'Responsable':
-        navigate('/admin/dashboard');
-        break;
-      case 'Directeur':
-        navigate('/directeur/dashboard');
-        break;
+    setIsLoading(true);
+    setErrors({ ...errors, form: '' });
+
+    try {
+      const response = await authService.login({ email, password });
+      login(response);
+
+      const roleMap: Record<string, string> = {
+        'STUDENT': '/etudiant/dashboard',
+        'SUPERVISOR': '/encadrant/dashboard',
+        'DEPT_MANAGER': '/admin/dashboard',
+        'DIRECTOR': '/directeur/dashboard'
+      };
+
+      const redirectUrl = roleMap[response.role] || '/etudiant/dashboard';
+      navigate(redirectUrl);
+    } catch (error: any) {
+      console.error('Login failed:', error);
+      setErrors({
+        ...errors,
+        form: error?.response?.data || 'Identifiants incorrects ou problème de connexion au serveur.'
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -48,19 +63,24 @@ export function LoginPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {errors.form && (
+          <div className="bg-red-50 text-red-500 p-3 rounded-lg text-sm text-center">
+            {errors.form}
+          </div>
+        )}
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
           <input
-            type="text"
+            type="email"
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);
-              setErrors({ ...errors, email: '' });
+              setErrors({ ...errors, email: '', form: '' });
             }}
             placeholder="votre@univ.tn"
-            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
-              errors.email ? 'border-red-500' : 'border-gray-300 focus:ring-[#1F4E79]'
-            }`}
+            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${errors.email ? 'border-red-500' : 'border-gray-300 focus:ring-[#1F4E79]'
+              }`}
           />
           {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
         </div>
@@ -73,12 +93,11 @@ export function LoginPage() {
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value);
-                setErrors({ ...errors, password: '' });
+                setErrors({ ...errors, password: '', form: '' });
               }}
               placeholder="••••••••"
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 pr-10 ${
-                errors.password ? 'border-red-500' : 'border-gray-300 focus:ring-[#1F4E79]'
-              }`}
+              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 pr-10 ${errors.password ? 'border-red-500' : 'border-gray-300 focus:ring-[#1F4E79]'
+                }`}
             />
             <button
               type="button"
@@ -93,9 +112,11 @@ export function LoginPage() {
 
         <button
           type="submit"
-          className="w-full bg-[#1F4E79] text-white py-2 rounded-lg hover:bg-[#163A5C] transition-colors"
+          disabled={isLoading}
+          className={`w-full text-white py-2 rounded-lg transition-colors ${isLoading ? 'bg-[#163A5C] opacity-75 cursor-not-allowed' : 'bg-[#1F4E79] hover:bg-[#163A5C]'
+            }`}
         >
-          Se connecter
+          {isLoading ? 'Connexion en cours...' : 'Se connecter'}
         </button>
 
         <div className="text-center">
