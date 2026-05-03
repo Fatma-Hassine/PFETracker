@@ -47,8 +47,11 @@ pfetracker.db
 .DS_Store
 Thumbs.db
 
-
 node_modules/
 frontend/node_modules/
 .vite/
 frontend/.vite/
+
+target/
+backend/target/
+*.class
