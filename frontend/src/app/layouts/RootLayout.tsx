@@ -1,7 +1,9 @@
-import { Outlet, useLocation } from 'react-router';
+import { Outlet, useLocation, useNavigate } from 'react-router';
 import { Sidebar } from '../components/Sidebar';
 import { Navbar } from '../components/Navbar';
 import { RoleSwitcher } from '../components/RoleSwitcher';
+import { useRole } from '../contexts/RoleContext';
+import { useEffect } from 'react';
 
 const getPageTitle = (pathname: string): string => {
   const titles: Record<string, string> = {
@@ -35,8 +37,19 @@ const getPageTitle = (pathname: string): string => {
 };
 
 export function RootLayout() {
+  const { isAuthenticated } = useRole();
+  const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/auth/login');
+    }
+  }, [isAuthenticated, navigate]);
+
   const title = getPageTitle(location.pathname);
+
+  if (!isAuthenticated) return null;
 
   return (
     <div className="flex h-screen bg-gray-50">

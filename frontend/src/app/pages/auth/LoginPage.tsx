@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { useRole } from '../../contexts/RoleContext';
 import { Eye, EyeOff } from 'lucide-react';
@@ -6,12 +6,24 @@ import authService from '../../../api/authService';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { login } = useRole();.
+  const { login, isAuthenticated, user } = useRole();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({ email: '', password: '', form: '' });
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      const roleMap: Record<string, string> = {
+        'STUDENT': '/etudiant/dashboard',
+        'SUPERVISOR': '/encadrant/dashboard',
+        'DEPT_MANAGER': '/admin/dashboard',
+        'DIRECTOR': '/directeur/dashboard'
+      };
+      navigate(roleMap[user.role] || '/etudiant/dashboard');
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

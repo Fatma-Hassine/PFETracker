@@ -18,10 +18,16 @@ public class AuthController {
 
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     @GetMapping("/test")
     public List<User> test() {
         return userRepository.findAll();
+    }
+
+    @GetMapping("/generate")
+    public String generatePassword() {
+        return passwordEncoder.encode("123456");
     }
 
     @PostMapping("/login")
@@ -29,30 +35,60 @@ public class AuthController {
         System.out.println("Login attempt for email: " + loginRequest.getEmail());
         User user = userRepository.findByEmail(loginRequest.getEmail()).orElse(null);
 
-        if (user == null) {
-            System.out.println("User not found");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Identifiants incorrects ou compte inactif");
+        if (user == null || !passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+            System.out.println("User not found or password mismatch");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Identifiants incorrects ou compte inactif");
         }
 
         System.out.println("User found: " + user.getEmail() + " active: " + user.getIsActive());
-        
-        // Use Boolean.TRUE.equals to safely check if it's active, avoiding NPE if it's null
+
         if (!Boolean.TRUE.equals(user.getIsActive())) {
-             System.out.println("User is not active");
-             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Identifiants incorrects ou compte inactif");
+            System.out.println("User is not active");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Identifiants incorrects ou compte inactif");
         }
 
-        String token = jwtTokenProvider.generateToken(user.getId(), user.getEmail(), user.getRole().name());
+        String roleStr = user.getRole().name();
+
+        String token = jwtTokenProvider.generateToken(user.getId(), user.getEmail(), roleStr);
+        String refreshToken = jwtTokenProvider.generateRefreshToken(user.getId(), user.getEmail(), roleStr);
 
         AuthResponse response = AuthResponse.builder()
                 .token(token)
+                .refreshToken(refreshToken)
                 .id(user.getId())
                 .email(user.getEmail())
                 .firstName(user.getFirstName())
                 .lastName(user.getLastName())
-                .role(user.getRole().name())
+                .role(roleStr)
                 .build();
 
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@RequestBody String refreshToken) {
+        refreshToken = refreshToken.replace("\"", "");
+
+        if (jwtTokenProvider.validateToken(refreshToken)) {
+            Long userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
+            String email = jwtTokenProvider.getEmailFromToken(refreshToken);
+            String role = jwtTokenProvider.getRoleFromToken(refreshToken);
+
+            String newToken = jwtTokenProvider.generateToken(userId, email, role);
+            String newRefreshToken = jwtTokenProvider.generateRefreshToken(userId, email, role);
+
+            AuthResponse response = AuthResponse.builder()
+                    .token(newToken)
+                    .refreshToken(newRefreshToken)
+                    .id(userId)
+                    .email(email)
+                    .role(role)
+                    .build();
+
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid refresh token");
     }
 }

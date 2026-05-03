@@ -69,8 +69,18 @@ public class JwtTokenProvider {
     }
 
     public String generateToken(Long userId, String email, String role) {
+        return generateToken(userId, email, role, jwtExpiration);
+    }
+
+    public String generateRefreshToken(Long userId, String email, String role) {
+        // Refresh token typically lasts much longer (e.g., 7 days)
+        // Here we use a separate value if available, or a default
+        return generateToken(userId, email, role, jwtExpiration * 672); // 672 = 7 days if jwtExpiration is 15 min
+    }
+
+    public String generateToken(Long userId, String email, String role, long expiration) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpiration);
+        Date expiryDate = new Date(now.getTime() + expiration);
 
         return Jwts.builder()
                 .subject(email)

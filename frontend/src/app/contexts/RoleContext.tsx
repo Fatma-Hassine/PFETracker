@@ -34,16 +34,22 @@ export function RoleProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Check initial auth state on mount
     const checkAuth = () => {
-      if (authService.isAuthenticated()) {
-        const currentUser = authService.getCurrentUser();
-        if (currentUser) {
-          setUser(currentUser);
-          setIsAuthenticated(true);
-          const mappedRole = roleMap[currentUser.role] || 'Étudiant';
-          setRole(mappedRole);
+      try {
+        if (authService.isAuthenticated()) {
+          const currentUser = authService.getCurrentUser();
+          if (currentUser) {
+            setUser(currentUser);
+            setIsAuthenticated(true);
+            const mappedRole = roleMap[currentUser.role] || 'Étudiant';
+            setRole(mappedRole);
+          }
         }
+      } catch (error) {
+        console.error('Failed to initialize auth state:', error);
+        authService.logout(); // Clear potentially corrupted data
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
     checkAuth();
   }, []);
@@ -63,7 +69,14 @@ export function RoleProvider({ children }: { children: ReactNode }) {
   };
 
   if (isLoading) {
-    return null; // Or a loading spinner
+    return (
+      <div className="h-screen w-screen flex items-center justify-center bg-gray-50">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-[#1F4E79] border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-600 font-medium">Chargement de votre session...</p>
+        </div>
+      </div>
+    );
   }
 
   return (

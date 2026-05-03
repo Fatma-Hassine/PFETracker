@@ -8,6 +8,7 @@ export interface LoginCredentials {
 
 export interface AuthResponse {
   token: string;
+  refreshToken: string;
   id: number;
   email: string;
   firstName: string;
@@ -20,13 +21,38 @@ class AuthService {
     const response = await axiosInstance.post<AuthResponse>('/public/auth/login', credentials);
     if (response.data.token) {
       localStorage.setItem('token', response.data.token);
+      localStorage.setItem('refreshToken', response.data.refreshToken);
       localStorage.setItem('user', JSON.stringify(response.data));
     }
     return response.data;
   }
 
+  async refresh(): Promise<string | null> {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (!refreshToken) return null;
+
+    try {
+      const response = await axiosInstance.post<AuthResponse>('/public/auth/refresh', refreshToken);
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('refreshToken', response.data.refreshToken);
+        // Update user data with new tokens
+        const user = this.getCurrentUser();
+        if (user) {
+          localStorage.setItem('user', JSON.stringify({ ...user, ...response.data }));
+        }
+        return response.data.token;
+      }
+      return null;
+    } catch (error) {
+      this.logout();
+      return null;
+    }
+  }
+
   logout() {
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
   }
 
