@@ -40,7 +40,7 @@ public class SecurityConfig {
                 .requestMatchers("/ws/**", "/topic/**", "/app/**").permitAll()
                 .requestMatchers("/api/v3/public/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 // Temporaire pour tester le Module 2 sans JWT Module 1
-                .requestMatchers("/api/module2/**").permitAll()
+                .requestMatchers("/api/v2/pfeTrack/**").permitAll()
                 
                 .requestMatchers("/api/v3/messages/**").hasAnyRole("STUDENT", "SUPERVISOR")
                 .requestMatchers("/api/v3/comments/**").hasAnyRole("STUDENT", "SUPERVISOR")

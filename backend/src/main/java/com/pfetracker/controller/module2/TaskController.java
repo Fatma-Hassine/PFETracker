@@ -17,7 +17,7 @@ import java.util.List;
  * Controller des tâches et sous-tâches du Module 2.
  */
 @RestController
-@RequestMapping("/api/module2")
+@RequestMapping("/api/v2/pfeTrack")
 @RequiredArgsConstructor
 public class TaskController {
 

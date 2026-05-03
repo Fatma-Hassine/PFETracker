@@ -3,7 +3,6 @@ package com.pfetracker.service.module2;
 import com.pfetracker.dto.module2.CreatePfeRequest;
 import com.pfetracker.dto.module2.UpdateProjectSheetRequest;
 import com.pfetracker.dto.module2.ValidateProjectSheetRequest;
-import com.pfetracker.entity.module2.Milestone;
 import com.pfetracker.entity.module2.Pfe;
 import com.pfetracker.entity.module2.enums.PfeStatus;
 import com.pfetracker.repository.module2.PfeRepository;
@@ -19,7 +18,6 @@ import java.util.List;
 public class PfeService {
 
     private final PfeRepository pfeRepository;
-    private final MilestoneFactory milestoneFactory;
     private final CurrentUserService currentUserService;
 
     @Transactional
@@ -27,19 +25,33 @@ public class PfeService {
         Pfe pfe = new Pfe();
 
         pfe.setStudentId(request.getStudentId());
+        pfe.setStudentName(request.getStudentName());
+        pfe.setStudentEmail(request.getStudentEmail());
+
         pfe.setSupervisorId(request.getSupervisorId());
+        pfe.setSupervisorName(request.getSupervisorName());
+        pfe.setSupervisorEmail(request.getSupervisorEmail());
+
+        pfe.setDepartment(request.getDepartment());
+
         pfe.setTitle(request.getTitle());
         pfe.setDescription(request.getDescription());
         pfe.setProblemStatement(request.getProblemStatement());
         pfe.setObjectives(request.getObjectives());
         pfe.setTechnologies(request.getTechnologies());
+
         pfe.setStartDate(request.getStartDate() != null ? request.getStartDate() : LocalDate.now());
         pfe.setDefenseDate(request.getDefenseDate());
+
         pfe.setStatus(PfeStatus.IN_PROGRESS);
         pfe.setProgress(0.0);
 
-        List<Milestone> milestones = milestoneFactory.createDefaultMilestones(pfe);
-        pfe.setMilestones(milestones);
+        /*
+         * Important :
+         * On ne crée pas les jalons ici.
+         * Le fichier Excel crée seulement le PFE + l'affectation étudiant/encadrant.
+         * Les jalons seront créés plus tard par l'étudiant ou proposés par l'assistant IA.
+         */
 
         return pfeRepository.save(pfe);
     }

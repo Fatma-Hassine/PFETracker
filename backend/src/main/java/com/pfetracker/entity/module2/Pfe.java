@@ -28,7 +28,17 @@ public class Pfe extends BaseModule2Entity {
 
     private Long studentId;
 
+    private String studentName;
+
+    private String studentEmail;
+
     private Long supervisorId;
+
+    private String supervisorName;
+
+    private String supervisorEmail;
+
+    private String department;
 
     @Column(nullable = false)
     private String title;

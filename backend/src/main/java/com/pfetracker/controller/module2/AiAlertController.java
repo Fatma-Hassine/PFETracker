@@ -19,7 +19,7 @@ import java.util.List;
  * - sprint non clôturé
  */
 @RestController
-@RequestMapping("/api/module2")
+@RequestMapping("/api/v2/pfeTrack")
 @RequiredArgsConstructor
 public class AiAlertController {
 

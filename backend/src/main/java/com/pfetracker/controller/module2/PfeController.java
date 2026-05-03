@@ -15,7 +15,7 @@ import java.util.List;
  * Controller principal du Module 2 pour gérer les PFE.
  */
 @RestController
-@RequestMapping("/api/module2/pfes")
+@RequestMapping("/api/v2/pfeTrack/pfes")
 @RequiredArgsConstructor
 public class PfeController {
 

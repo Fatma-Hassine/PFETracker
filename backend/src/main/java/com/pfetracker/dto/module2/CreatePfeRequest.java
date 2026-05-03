@@ -14,8 +14,18 @@ public class CreatePfeRequest {
     @NotNull
     private Long studentId;
 
+    private String studentName;
+
+    private String studentEmail;
+
     @NotNull
     private Long supervisorId;
+
+    private String supervisorName;
+
+    private String supervisorEmail;
+
+    private String department;
 
     @NotBlank
     private String title;
