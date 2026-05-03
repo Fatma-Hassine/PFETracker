@@ -47,11 +47,21 @@ pfetracker.db
 .DS_Store
 Thumbs.db
 
+# Frontend
 node_modules/
 frontend/node_modules/
 .vite/
 frontend/.vite/
 
+# Backend generated files
 target/
 backend/target/
 *.class
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+
+
+
