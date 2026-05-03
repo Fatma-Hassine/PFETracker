@@ -1,0 +1,6 @@
+package com.pfetracker.entity.module1.enums;
+
+public enum TypeNotification {
+	INVITATION, TACHE_ASSIGNEE, TACHE_VALIDEE, TACHE_CORRECTION,
+    ALERTE_RETARD, STAGNATION, REUNION, SOUMISSION, COMPTE_VALIDE,COMPTE_REFUSE
+}

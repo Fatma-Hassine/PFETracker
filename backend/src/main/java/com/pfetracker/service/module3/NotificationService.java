@@ -5,11 +5,11 @@ import com.pfetracker.dto.module3.NotificationDTO;
 import com.pfetracker.dto.module3.PageResponse;
 import com.pfetracker.entity.module3.Comment;
 import com.pfetracker.entity.module3.Meeting;
-import com.pfetracker.entity.module3.Notification;
+import com.pfetracker.entity.module3.NotificationM3;
 import com.pfetracker.entity.module3.PFE;
 import com.pfetracker.entity.module3.Task;
 import com.pfetracker.mapper.module3.NotificationMapper;
-import com.pfetracker.repository.module3.NotificationRepository;
+import com.pfetracker.repository.module3.NotificationRepositoryM3;
 import com.pfetracker.repository.module3.UserRepository;
 import com.pfetracker.websocket.module3.NotificationWebSocketController;
 import lombok.RequiredArgsConstructor;
@@ -31,15 +31,15 @@ import java.util.List;
 @Transactional
 public class NotificationService {
 
-    private final NotificationRepository notificationRepository;
+    private final NotificationRepositoryM3 notificationRepository;
     private final NotificationMapper notificationMapper;
     private final NotificationWebSocketController webSocketController;
     private final UserRepository userRepository;
     private final EmailService emailService;
 
-    public NotificationDTO createNotification(Long userId, String message, Notification.NotificationType type,
+    public NotificationDTO createNotification(Long userId, String message, NotificationM3.NotificationType type,
                                                Long relatedId, String relatedType, String actionUrl) {
-        Notification notification = Notification.builder()
+        NotificationM3 notification = NotificationM3.builder()
                 .userId(userId)
                 .message(message)
                 .type(type)
@@ -49,7 +49,7 @@ public class NotificationService {
                 .actionUrl(actionUrl)
                 .build();
 
-        Notification saved = notificationRepository.save(notification);
+        NotificationM3 saved = notificationRepository.save(notification);
         NotificationDTO dto = notificationMapper.toDTO(saved);
 
         webSocketController.sendNotification(userId, dto);
@@ -60,19 +60,19 @@ public class NotificationService {
 
     public void createMessageNotification(Long receiverId, MessageDTO message) {
         String msg = "Nouveau message de " + message.getSenderName();
-        createNotification(receiverId, msg, Notification.NotificationType.MESSAGE,
+        createNotification(receiverId, msg, NotificationM3.NotificationType.MESSAGE,
                 message.getId(), "MESSAGE", "/messages/" + message.getPfeId());
     }
 
     public void createCommentNotification(Long userId, Comment comment, Task task) {
         String msg = "Nouveau commentaire sur la tÃ¢che: " + task.getTitle();
-        createNotification(userId, msg, Notification.NotificationType.TASK,
+        createNotification(userId, msg, NotificationM3.NotificationType.TASK,
                 comment.getId(), "COMMENT", "/tasks/" + task.getId() + "/comments");
     }
 
     public void createMentionNotification(Long userId, Comment comment, PFE pfe) {
         String msg = "Vous avez Ã©tÃ© mentionnÃ© dans un commentaire";
-        createNotification(userId, msg, Notification.NotificationType.TASK,
+        createNotification(userId, msg, NotificationM3.NotificationType.TASK,
                 comment.getId(), "COMMENT", "/tasks/" + comment.getTaskId() + "/comments");
     }
 
@@ -86,9 +86,9 @@ public class NotificationService {
             default -> "Mise Ã  jour de rÃ©union: " + meeting.getTitle();
         };
 
-        Notification.NotificationType type = action.contains("REMINDER") 
-                ? Notification.NotificationType.MEETING 
-                : Notification.NotificationType.MEETING;
+        NotificationM3.NotificationType type = action.contains("REMINDER") 
+                ? NotificationM3.NotificationType.MEETING 
+                : NotificationM3.NotificationType.MEETING;
 
         createNotification(userId, msg, type, meeting.getId(), "MEETING", "/meetings/" + meeting.getId());
     }
@@ -102,19 +102,19 @@ public class NotificationService {
             default -> "Mise Ã  jour de tÃ¢che: " + task.getTitle();
         };
 
-        createNotification(userId, msg, Notification.NotificationType.TASK,
+        createNotification(userId, msg, NotificationM3.NotificationType.TASK,
                 task.getId(), "TASK", "/tasks/" + task.getId());
     }
 
     public void createAlertNotification(Long userId, String alertMessage, String severity) {
-        createNotification(userId, alertMessage, Notification.NotificationType.ALERT,
+        createNotification(userId, alertMessage, NotificationM3.NotificationType.ALERT,
                 null, "ALERT", "/dashboard");
     }
 
     @Transactional(readOnly = true)
     public PageResponse<NotificationDTO> getUserNotifications(Long userId, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<Notification> notifications = notificationRepository.findByUserId(userId, pageable);
+        Page<NotificationM3> notifications = notificationRepository.findByUserId(userId, pageable);
 
         return PageResponse.<NotificationDTO>builder()
                 .content(notificationMapper.toDTOList(notifications.getContent()))

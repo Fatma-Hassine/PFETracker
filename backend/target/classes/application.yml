@@ -1,6 +1,9 @@
 spring:
   application:
-    name: pfetracker-module3
+    name: pfetracker-module1
+
+  main:
+    allow-bean-definition-overriding: true
 
   datasource:
     url: jdbc:postgresql://localhost:5432/pfetracker
@@ -16,6 +19,8 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_batch_fetch_size: 20
+        generate_statistics: false
 
   mail:
     host: ${MAIL_HOST:smtp.gmail.com}
@@ -40,8 +45,31 @@ server:
     context-path: /api
 
 jwt:
-  secret: ${JWT_SECRET:pfetracker-secret-key-module3-communication-reunion-dashboard-2024}
-  expiration: 900000  # 15 minutes
+  secret: ${JWT_SECRET:pfetracker-secret-key-module1-very-long-secret-key-256-bits-minimum}
+  access-token-expiration: 900000
+  refresh-token-expiration: 604800000
+
+app:
+  jwt:
+    secret: MaCleSecreteTresLonguePourJwtPfetrackerModule1AvecAuMoins32Caracteres
+    access-token-expiration: 900000
+    refresh-token-expiration: 604800000
+    expiration: 86400000
+
+  cors:
+    allowed-origins: http://localhost:4200,https://pfetracker.app
+
+  email:
+    domaine-autorise: "@institution.edu"
+
+  security:
+    max-tentatives-connexion: 5
+    duree-verrouillage-minutes: 30
+    duree-reset-token-heures: 1
+    bcrypt-strength: 12
+
+  audit:
+    conservation-mois: 6
 
 websocket:
   endpoint: /ws
@@ -49,7 +77,8 @@ websocket:
 
 logging:
   level:
-    com.pfetracker.module3: DEBUG
+    com.pfetracker: DEBUG
     org.springframework.web.socket: DEBUG
+    org.springframework.security: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"

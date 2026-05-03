@@ -9,8 +9,8 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-04-30T22:14:42+0200",
-    comments = "version: 1.5.5.Final, compiler: javac, environment: Java 21.0.9 (Oracle Corporation)"
+    date = "2026-05-03T12:19:56+0100",
+    comments = "version: 1.5.5.Final, compiler: Eclipse JDT (IDE) 3.45.0.v20260224-0835, environment: Java 25.0.2 (Eclipse Adoptium)"
 )
 @Component
 public class MeetingMapperImpl implements MeetingMapper {
@@ -23,23 +23,23 @@ public class MeetingMapperImpl implements MeetingMapper {
 
         MeetingDTO.MeetingDTOBuilder meetingDTO = MeetingDTO.builder();
 
-        meetingDTO.id( meeting.getId() );
-        meetingDTO.title( meeting.getTitle() );
-        meetingDTO.description( meeting.getDescription() );
-        meetingDTO.meetingDate( meeting.getMeetingDate() );
-        meetingDTO.duration( meeting.getDuration() );
+        meetingDTO.createdAt( meeting.getCreatedAt() );
         meetingDTO.createdBy( meeting.getCreatedBy() );
-        meetingDTO.participantId( meeting.getParticipantId() );
-        meetingDTO.pfeId( meeting.getPfeId() );
-        meetingDTO.status( meeting.getStatus() );
-        meetingDTO.meetingLink( meeting.getMeetingLink() );
-        meetingDTO.meetProvider( meeting.getMeetProvider() );
+        meetingDTO.description( meeting.getDescription() );
+        meetingDTO.duration( meeting.getDuration() );
+        meetingDTO.id( meeting.getId() );
         meetingDTO.isOnline( meeting.getIsOnline() );
         meetingDTO.location( meeting.getLocation() );
-        meetingDTO.createdAt( meeting.getCreatedAt() );
-        meetingDTO.updatedAt( meeting.getUpdatedAt() );
-        meetingDTO.report( meeting.getReport() );
+        meetingDTO.meetProvider( meeting.getMeetProvider() );
+        meetingDTO.meetingDate( meeting.getMeetingDate() );
+        meetingDTO.meetingLink( meeting.getMeetingLink() );
+        meetingDTO.participantId( meeting.getParticipantId() );
+        meetingDTO.pfeId( meeting.getPfeId() );
         meetingDTO.rejectionReason( meeting.getRejectionReason() );
+        meetingDTO.report( meeting.getReport() );
+        meetingDTO.status( meeting.getStatus() );
+        meetingDTO.title( meeting.getTitle() );
+        meetingDTO.updatedAt( meeting.getUpdatedAt() );
 
         return meetingDTO.build();
     }
@@ -66,23 +66,23 @@ public class MeetingMapperImpl implements MeetingMapper {
 
         Meeting.MeetingBuilder meeting = Meeting.builder();
 
-        meeting.id( dto.getId() );
-        meeting.title( dto.getTitle() );
-        meeting.description( dto.getDescription() );
-        meeting.meetingDate( dto.getMeetingDate() );
-        meeting.duration( dto.getDuration() );
+        meeting.createdAt( dto.getCreatedAt() );
         meeting.createdBy( dto.getCreatedBy() );
-        meeting.participantId( dto.getParticipantId() );
-        meeting.pfeId( dto.getPfeId() );
-        meeting.status( dto.getStatus() );
-        meeting.meetingLink( dto.getMeetingLink() );
-        meeting.meetProvider( dto.getMeetProvider() );
+        meeting.description( dto.getDescription() );
+        meeting.duration( dto.getDuration() );
+        meeting.id( dto.getId() );
         meeting.isOnline( dto.getIsOnline() );
         meeting.location( dto.getLocation() );
-        meeting.createdAt( dto.getCreatedAt() );
-        meeting.updatedAt( dto.getUpdatedAt() );
-        meeting.report( dto.getReport() );
+        meeting.meetProvider( dto.getMeetProvider() );
+        meeting.meetingDate( dto.getMeetingDate() );
+        meeting.meetingLink( dto.getMeetingLink() );
+        meeting.participantId( dto.getParticipantId() );
+        meeting.pfeId( dto.getPfeId() );
         meeting.rejectionReason( dto.getRejectionReason() );
+        meeting.report( dto.getReport() );
+        meeting.status( dto.getStatus() );
+        meeting.title( dto.getTitle() );
+        meeting.updatedAt( dto.getUpdatedAt() );
 
         return meeting.build();
     }
