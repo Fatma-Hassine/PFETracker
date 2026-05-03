@@ -25,7 +25,6 @@ export function ChangePasswordPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword === confirmPassword) {
-      login();
       switch (role) {
         case 'Étudiant':
           navigate('/etudiant/dashboard');
