@@ -27,10 +27,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
+
+        // MODIF : ignorer toutes les routes /auth/** du module1
+        // car ce filtre module3 utilise une clé JWT différente
+        // et ne doit pas tenter de valider les tokens module1
+        String path = request.getRequestURI();
+        if (path.contains("/auth/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         try {
             String jwt = getJwtFromRequest(request);
-
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
                 Long userId = tokenProvider.getUserIdFromToken(jwt);
                 String role = tokenProvider.getRoleFromToken(jwt);
@@ -65,4 +75,3 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
 }
-

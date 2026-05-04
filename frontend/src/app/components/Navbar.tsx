@@ -1,6 +1,8 @@
+// Navbar.tsx
 import { useState, useRef, useEffect } from 'react';
 import { useRole } from '../contexts/RoleContext';
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';  // ✅ corrigé
+
 import { Bell, ChevronDown } from 'lucide-react';
 
 interface Notification {
@@ -22,7 +24,7 @@ export function Navbar({ title }: { title: string }) {
     { id: 1, message: 'Tâche validée par Dr. Trabelsi', link: '/etudiant/taches', time: 'Il y a 5 min' },
     { id: 2, message: 'Nouveau commentaire sur Conception DB', link: '/etudiant/taches', time: 'Il y a 1h' },
     { id: 3, message: 'Réunion confirmée pour le 22 Jan', link: '/etudiant/reunions', time: 'Il y a 2h' },
-    { id: 4, message: 'Deadline approchante: Rapport d\'analyse', link: '/etudiant/taches', time: 'Il y a 3h' },
+    { id: 4, message: "Deadline approchante: Rapport d'analyse", link: '/etudiant/taches', time: 'Il y a 3h' },
     { id: 5, message: 'Message de Dr. Trabelsi', link: '/etudiant/messagerie', time: 'Hier' },
   ];
 
@@ -35,7 +37,6 @@ export function Navbar({ title }: { title: string }) {
         setShowUserMenu(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);

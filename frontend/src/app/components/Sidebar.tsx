@@ -1,19 +1,11 @@
+// Sidebar.tsx
 import { useRole } from '../contexts/RoleContext';
-import { useNavigate, useLocation } from 'react-router';
+import { useNavigate, useLocation } from 'react-router-dom';  // ✅ corrigé
+
 import {
-  LayoutDashboard,
-  FileText,
-  CheckSquare,
-  MessageSquare,
-  Calendar,
-  User,
-  Users,
-  ClipboardCheck,
-  UserCog,
-  GitBranch,
-  Eye,
-  BarChart3,
-  Sparkles,
+  LayoutDashboard, FileText, CheckSquare, MessageSquare,
+  Calendar, User, Users, ClipboardCheck, UserCog,
+  GitBranch, Eye, BarChart3, Sparkles,
 } from 'lucide-react';
 
 interface NavItem {
@@ -51,11 +43,11 @@ export function Sidebar() {
         ];
       case 'Responsable':
         return [
-          { label: 'Tableau de bord', path: '/admin/dashboard', icon: <LayoutDashboard size={20} /> },
-          { label: 'Comptes', path: '/admin/comptes', icon: <UserCog size={20} />, badge: 3 },
-          { label: 'Affectations', path: '/admin/affectations', icon: <GitBranch size={20} /> },
-          { label: 'Supervision', path: '/admin/supervision', icon: <Eye size={20} /> },
-          { label: 'Profil', path: '/admin/profil', icon: <User size={20} /> },
+          { label: 'Tableau de bord', path: '/responsable/dashboard', icon: <LayoutDashboard size={20} /> },
+          { label: 'Comptes', path: '/responsable/comptes', icon: <UserCog size={20} />, badge: 3 },
+          { label: 'Affectations', path: '/responsable/affectations', icon: <GitBranch size={20} /> },
+          { label: 'Encadrants', path: '/responsable/encadrants', icon: <Users size={20} /> },
+          { label: 'Profil', path: '/responsable/profil', icon: <User size={20} /> },
         ];
       case 'Directeur':
         return [

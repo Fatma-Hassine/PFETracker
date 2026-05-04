@@ -39,7 +39,6 @@ public class SecurityConfigM1 {
         http
             .securityMatcher(
                 "/auth/**",
-                "/api/auth/**",
                 "/admin/**",
                 "/responsable/**",
                 "/directeur/**",
@@ -61,31 +60,23 @@ public class SecurityConfigM1 {
 
             .authorizeHttpRequests(auth -> auth
 
-                // Important pour CORS
+                // MODIF : OPTIONS toujours autorisé pour CORS preflight
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // Routes publiques Auth
-                .requestMatchers(
-                    "/auth/inscription",
-                    "/auth/connexion",
-                    "/auth/refresh",
-                    "/auth/mot-de-passe-oublie",
-                    "/auth/reinitialiser-mot-de-passe",
-                    "/api/auth/inscription",   
-                    "/api/auth/connexion",    
-                    "/api/auth/refresh",    
-                    "/api/auth/mot-de-passe-oublie",      
-                    "/api/auth/reinitialiser-mot-de-passe"
-                ).permitAll()
+                // MODIF : toutes les routes /auth/** sont publiques
+                // (inscription, connexion, refresh, reset mdp, changer mdp)
+                // car changer-mot-de-passe est appelé avec un token JWT valide
+                // mais le compte peut ne pas être encore "enabled"
+                .requestMatchers("/auth/**").permitAll()
 
-                // Swagger
+                // Swagger public
                 .requestMatchers(
                     "/swagger-ui/**",
                     "/swagger-ui.html",
                     "/v3/api-docs/**"
                 ).permitAll()
 
-                // Routes protégées
+                // Routes protégées par rôle
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/responsable/**").hasRole("DEPT_MANAGER")
                 .requestMatchers("/directeur/**").hasRole("DIRECTEUR")
@@ -98,7 +89,6 @@ public class SecurityConfigM1 {
             )
 
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-
             .authenticationProvider(authenticationProviderM1());
 
         return http.build();

@@ -10,8 +10,9 @@ import lombok.*;
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 public class DirecteurDesStages extends Utilisateur{
+	@Column(name = "autorisation_affectation_automatique", nullable = false)
+	private boolean autorisationAffectationAutomatique = true;
+
+	@Column(name = "delai_max_affectation_jours", nullable = false)
 	private Integer delaiMaxAffectationJours = 21;
-
-    private boolean autorisationAffectationAutomatique = true;
-
 }

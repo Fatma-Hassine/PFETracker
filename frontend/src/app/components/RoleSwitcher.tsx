@@ -1,5 +1,7 @@
+// RoleSwitcher.tsx
 import { useRole, Role } from '../contexts/RoleContext';
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';  // ✅ corrigé
+
 
 export function RoleSwitcher() {
   const { role, setRole } = useRole();
@@ -9,8 +11,6 @@ export function RoleSwitcher() {
 
   const handleRoleChange = (newRole: Role) => {
     setRole(newRole);
-
-    // Navigate to the appropriate dashboard
     switch (newRole) {
       case 'Étudiant':
         navigate('/etudiant/dashboard');
@@ -19,7 +19,7 @@ export function RoleSwitcher() {
         navigate('/encadrant/dashboard');
         break;
       case 'Responsable':
-        navigate('/admin/dashboard');
+        navigate('/responsable/dashboard');
         break;
       case 'Directeur':
         navigate('/directeur/dashboard');
