@@ -15,7 +15,7 @@ import java.io.IOException;
 import com.pfetracker.dto.*;
 
 @RestController("utilisateurControllerM1")
-@RequestMapping("/api/utilisateurs")
+@RequestMapping("/utilisateurs")
 @RequiredArgsConstructor
 public class UtilisateurController {
 	private final UtilisateurService utilisateurService;

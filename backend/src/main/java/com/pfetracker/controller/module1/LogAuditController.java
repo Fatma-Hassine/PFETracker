@@ -13,7 +13,7 @@ import com.pfetracker.service.module1.LogAuditService;
 import lombok.RequiredArgsConstructor;
 
 @RestController("logAuditControllerM1")
-@RequestMapping("/api/logs")
+@RequestMapping("/logs")
 @RequiredArgsConstructor
 public class LogAuditController {
 	 private final LogAuditService logAuditService;

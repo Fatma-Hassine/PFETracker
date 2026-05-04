@@ -13,7 +13,7 @@ import com.pfetracker.service.module1.InvitationService;
 import lombok.RequiredArgsConstructor;
 
 @RestController("invitationControllerM1")
-@RequestMapping("/api/invitations")
+@RequestMapping("/invitations")
 @RequiredArgsConstructor
 public class InvitationController {
 	private final InvitationService invitationService;

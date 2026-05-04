@@ -1,12 +1,17 @@
 package com.pfetracker.security.module1;
+
 import java.io.IOException;
+import java.util.List;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.http.HttpMethod;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,13 +21,24 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.pfetracker.entity.module1.Utilisateur;
 import com.pfetracker.repository.module1.UtilisateurRepository;
-@Component("jwtAuthenticationFilterM1")
 
+@Component("jwtAuthenticationFilterM1")
 @RequiredArgsConstructor
 @Slf4j
-public class JwtAuthenticationFilter extends OncePerRequestFilter{
-	private final JwtService jwtService;
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private final JwtService jwtService;
     private final UtilisateurRepository utilisateurRepo;
+
+    private static final List<String> PUBLIC_PATHS = List.of(
+            "/auth/inscription",
+            "/auth/connexion",
+            "/auth/refresh",
+            "/auth/mot-de-passe-oublie",
+            "/auth/reinitialiser-mot-de-passe",
+            "/swagger-ui",
+            "/v3/api-docs"
+    );
 
     @Override
     protected void doFilterInternal(
@@ -44,7 +60,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
         try {
             final String email = jwtService.extraireEmail(jwt);
 
-            // Si l'email est extrait et qu'aucune auth n'est déjà présente
             if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 Utilisateur utilisateur = utilisateurRepo.findByEmail(email).orElse(null);
@@ -52,32 +67,36 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter{
                 if (utilisateur != null && jwtService.estValide(jwt, utilisateur)) {
                     UsernamePasswordAuthenticationToken authToken =
                             new UsernamePasswordAuthenticationToken(
-                                    utilisateur.getId(),          // principal = userId
+                                    utilisateur.getId(),
                                     null,
                                     utilisateur.getAuthorities()
                             );
+
                     authToken.setDetails(
                             new WebAuthenticationDetailsSource().buildDetails(request)
                     );
+
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
+
         } catch (Exception e) {
             log.warn("Erreur lors du traitement du token JWT : {}", e.getMessage());
-            // On laisse passer — Spring Security rejettera la requête si besoin
         }
 
         filterChain.doFilter(request, response);
     }
 
-    // Ne pas filtrer les routes publiques
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
-        return path.startsWith("/api/auth/inscription")
-                || path.startsWith("/api/auth/connexion")
-                || path.startsWith("/api/auth/refresh")
-                || path.startsWith("/api/auth/mot-de-passe-oublie")
-                || path.startsWith("/api/auth/reinitialiser-mot-de-passe");
+
+        // Important pour CORS : laisser passer les requêtes preflight OPTIONS
+        if (HttpMethod.OPTIONS.matches(request.getMethod())) {
+            return true;
+        }
+
+        // Ne pas filtrer les routes publiques
+        return PUBLIC_PATHS.stream().anyMatch(path::startsWith);
     }
 }

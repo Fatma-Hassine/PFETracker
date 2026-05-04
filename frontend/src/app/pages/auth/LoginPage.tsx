@@ -1,125 +1,101 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router';
-import { useRole } from '../../contexts/RoleContext';
-import { Eye, EyeOff } from 'lucide-react';
+import { useState } from "react";
+import { apiRequest } from "../../../services/api";
+
+type AuthResponse = {
+  accessToken?: string;
+  token?: string;
+  refreshToken?: string;
+  role?: string;
+  mustChangePassword?: boolean;
+};
 
 export function LoginPage() {
-  const navigate = useNavigate();
-  const { login, role } = useRole();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [errors, setErrors] = useState({ email: '', password: '' });
+  const [email, setEmail] = useState("");
+  const [motDePasse, setMotDePasse] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const login = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
-    const newErrors = { email: '', password: '' };
-    if (!email) newErrors.email = 'Email requis';
-    if (!password) newErrors.password = 'Mot de passe requis';
+    try {
+      const data = await apiRequest<AuthResponse>("/auth/connexion", {
+        method: "POST",
+        body: JSON.stringify({
+          email,
+          motDePasse,
+        }),
+      });
 
-    if (newErrors.email || newErrors.password) {
-      setErrors(newErrors);
-      return;
-    }
+      const token = data.accessToken || data.token;
 
-    login();
-    switch (role) {
-      case 'Étudiant':
-        navigate('/etudiant/dashboard');
-        break;
-      case 'Encadrant':
-        navigate('/encadrant/dashboard');
-        break;
-      case 'Responsable':
-        navigate('/admin/dashboard');
-        break;
-      case 'Directeur':
-        navigate('/directeur/dashboard');
-        break;
+      if (token) localStorage.setItem("token", token);
+      if (data.refreshToken) localStorage.setItem("refreshToken", data.refreshToken);
+      if (data.role) localStorage.setItem("role", data.role);
+
+      if (data.mustChangePassword) {
+        window.location.href = "/auth/change-password";
+        return;
+      }
+
+      if (data.role === "ROLE_ADMIN") {
+        window.location.href = "/admin/dashboard";
+      } else if (data.role === "ROLE_ETUDIANT") {
+        window.location.href = "/student/dashboard";
+      } else if (data.role === "ROLE_ENCADRANT") {
+        window.location.href = "/supervisor/dashboard";
+      } else {
+        window.location.href = "/";
+      }
+    } catch (error) {
+      console.error("Erreur connexion :", error);
+
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert("Erreur lors de la connexion");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-8">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold text-[#1F4E79] mb-2">PFETracker</h1>
-        <p className="text-gray-600">Connectez-vous à votre compte</p>
-      </div>
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <form onSubmit={login} className="bg-white p-8 rounded-lg shadow w-full max-w-md">
+        <h1 className="text-2xl font-bold mb-6 text-center">Connexion</h1>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-          <input
-            type="text"
-            value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              setErrors({ ...errors, email: '' });
-            }}
-            placeholder="votre@univ.tn"
-            className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 ${
-              errors.email ? 'border-red-500' : 'border-gray-300 focus:ring-[#1F4E79]'
-            }`}
-          />
-          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
-        </div>
+        <input
+          id="email"
+          name="email"
+          autoComplete="email"
+          className="w-full border p-2 rounded mb-4"
+          placeholder="Email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe</label>
-          <div className="relative">
-            <input
-              type={showPassword ? 'text' : 'password'}
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setErrors({ ...errors, password: '' });
-              }}
-              placeholder="••••••••"
-              className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 pr-10 ${
-                errors.password ? 'border-red-500' : 'border-gray-300 focus:ring-[#1F4E79]'
-              }`}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
-          </div>
-          {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
-        </div>
+        <input
+          id="motDePasse"
+          name="motDePasse"
+          autoComplete="current-password"
+          className="w-full border p-2 rounded mb-4"
+          placeholder="Mot de passe"
+          type="password"
+          value={motDePasse}
+          onChange={(e) => setMotDePasse(e.target.value)}
+          required
+        />
 
         <button
           type="submit"
-          className="w-full bg-[#1F4E79] text-white py-2 rounded-lg hover:bg-[#163A5C] transition-colors"
+          className="w-full bg-[#1F4E79] text-white p-2 rounded"
+          disabled={loading}
         >
-          Se connecter
+          {loading ? "Connexion..." : "Se connecter"}
         </button>
-
-        <div className="text-center">
-          <button
-            type="button"
-            onClick={() => navigate('/auth/forgot-password')}
-            className="text-[#1F4E79] hover:underline text-sm"
-          >
-            Mot de passe oublié ?
-          </button>
-        </div>
-
-        <div className="text-center pt-4 border-t border-gray-200">
-          <p className="text-sm text-gray-600">
-            Pas de compte ?{' '}
-            <button
-              type="button"
-              onClick={() => navigate('/auth/register')}
-              className="text-[#1F4E79] hover:underline"
-            >
-              Créer un compte
-            </button>
-          </p>
-        </div>
       </form>
     </div>
   );

@@ -50,17 +50,18 @@ public class AuthServiceImpl implements AuthService{
         if (!req.getEmail().endsWith("@enicar.ucar.tn")) {
             throw new BusinessException("Email institutionnel requis");
         }
+
         if (utilisateurRepo.existsByEmail(req.getEmail())) {
             throw new BusinessException("Email déjà utilisé");
         }
 
         String motDePasseTemp = genererMotDePasse();
         Utilisateur user = creerUtilisateurSelon(req, motDePasseTemp);
+
         utilisateurRepo.save(user);
 
-        // Envoi email de bienvenue avec mot de passe temporaire
-        notificationService.envoyerEmailBienvenue(user.getEmail(), motDePasseTemp);
-    }
+     // Envoi email de bienvenue avec mot de passe temporaire
+        notificationService.envoyerEmailBienvenue(user.getEmail(), motDePasseTemp); }
 
 
     @Override

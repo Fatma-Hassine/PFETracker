@@ -14,7 +14,7 @@ import com.pfetracker.service.module1.*;
 import lombok.RequiredArgsConstructor;
 
 @RestController("notificationControllerM1") 
-@RequestMapping("/api/notifications")
+@RequestMapping("/notifications")
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class NotificationController {

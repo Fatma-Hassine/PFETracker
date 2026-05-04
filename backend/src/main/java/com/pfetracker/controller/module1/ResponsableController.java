@@ -17,7 +17,7 @@ import org.springframework.http.MediaType;
 import lombok.RequiredArgsConstructor;
 
 @RestController("responsableControllerM1")
-@RequestMapping("/api/responsable")
+@RequestMapping("/responsable")
 @PreAuthorize("hasRole('ROLE_DEPT_MANAGER')")
 @RequiredArgsConstructor
 public class ResponsableController {

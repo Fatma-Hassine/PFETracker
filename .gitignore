@@ -1,0 +1,100 @@
+# Java/Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+*.jar
+*.war
+*.ear
+
+# Node/npm
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+pnpm-lock.yaml
+.pnpm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.classpath
+.project
+.settings/
+.env.local
+
+# Build outputs
+dist/
+build/
+*.log
+
+# Database
+*.db
+pfetracker.db
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Frontend
+node_modules/
+frontend/node_modules/
+.vite/
+frontend/.vite/
+
+# Backend generated files
+target/
+backend/target/
+*.class
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Eclipse / STS
+.classpath
+.project
+.factorypath
+.settings/
+bin/
+
+# Java / Maven
+target/
+*.class
+*.jar
+*.war
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Node / React
+node_modules/
+dist/
+build/
+.vite/
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
