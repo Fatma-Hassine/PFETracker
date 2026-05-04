@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../../../services/api";
 
 type AuthResponse = {
@@ -13,6 +14,8 @@ export function LoginPage() {
   const [email, setEmail] = useState("");
   const [motDePasse, setMotDePasse] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
 
   const login = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,23 +32,52 @@ export function LoginPage() {
 
       const token = data.accessToken || data.token;
 
-      if (token) localStorage.setItem("token", token);
-      if (data.refreshToken) localStorage.setItem("refreshToken", data.refreshToken);
-      if (data.role) localStorage.setItem("role", data.role);
+      if (token) {
+        localStorage.setItem("token", token);
+      }
+
+      if (data.refreshToken) {
+        localStorage.setItem("refreshToken", data.refreshToken);
+      }
+
+      if (data.role) {
+        localStorage.setItem("role", data.role);
+      }
 
       if (data.mustChangePassword) {
-        window.location.href = "/auth/change-password";
+        navigate("/auth/change-password");
         return;
       }
 
-      if (data.role === "ROLE_ADMIN") {
-        window.location.href = "/admin/dashboard";
-      } else if (data.role === "ROLE_ETUDIANT") {
-        window.location.href = "/student/dashboard";
-      } else if (data.role === "ROLE_ENCADRANT") {
-        window.location.href = "/supervisor/dashboard";
-      } else {
-        window.location.href = "/";
+      switch (data.role) {
+        case "ROLE_ADMIN":
+          navigate("/admin/dashboard");
+          break;
+
+        case "ROLE_ETUDIANT":
+          navigate("/etudiant/dashboard");
+          break;
+
+        case "ROLE_ENCADRANT":
+          navigate("/encadrant/dashboard");
+          break;
+
+        case "ROLE_DIRECTEUR":
+          navigate("/directeur/dashboard");
+          break;
+
+        case "ROLE_SERVICE_STAGE":
+          navigate("/service-stages/dashboard");
+          break;
+
+        case "ROLE_DEPT_MANAGER":
+        case "ROLE_RESPONSABLE":
+          navigate("/responsable/dashboard");
+          break;
+
+        default:
+          navigate("/auth/login");
+          break;
       }
     } catch (error) {
       console.error("Erreur connexion :", error);
@@ -62,7 +94,10 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form onSubmit={login} className="bg-white p-8 rounded-lg shadow w-full max-w-md">
+      <form
+        onSubmit={login}
+        className="bg-white p-8 rounded-lg shadow w-full max-w-md"
+      >
         <h1 className="text-2xl font-bold mb-6 text-center">Connexion</h1>
 
         <input
@@ -91,7 +126,7 @@ export function LoginPage() {
 
         <button
           type="submit"
-          className="w-full bg-[#1F4E79] text-white p-2 rounded"
+          className="w-full bg-[#1F4E79] text-white p-2 rounded disabled:opacity-60"
           disabled={loading}
         >
           {loading ? "Connexion..." : "Se connecter"}

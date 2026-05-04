@@ -1,6 +1,8 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+// Navbar.tsx
+import { useState, useRef, useEffect } from 'react';
 import { useRole } from '../contexts/RoleContext';
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';  // ✅ corrigé
+
 import { Bell, ChevronDown } from 'lucide-react';
 import notificationService, { NotificationDTO } from '../../api/notificationService';
 import { useWebSocket, WebSocketMessage } from '../hooks/useWebSocket';
@@ -14,29 +16,13 @@ export function Navbar({ title }: { title: string }) {
   const notifRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
 
-  const fetchNotifications = useCallback(async () => {
-    try {
-      const data = await notificationService.getCenter();
-      setNotifications(data);
-      const unreadCount = await notificationService.getUnreadCount();
-      setNotificationCount(unreadCount);
-    } catch (error) {
-      console.error('Failed to fetch notifications:', error);
-    }
-  }, [setNotificationCount]);
-
-  useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
-
-  // Handle real-time notifications
-  useWebSocket({
-    onNotification: (msg: WebSocketMessage) => {
-      // Refresh notifications when a new one arrives
-      fetchNotifications();
-      // Optionally show a toast here
-    }
-  });
+  const notifications: Notification[] = [
+    { id: 1, message: 'Tâche validée par Dr. Trabelsi', link: '/etudiant/taches', time: 'Il y a 5 min' },
+    { id: 2, message: 'Nouveau commentaire sur Conception DB', link: '/etudiant/taches', time: 'Il y a 1h' },
+    { id: 3, message: 'Réunion confirmée pour le 22 Jan', link: '/etudiant/reunions', time: 'Il y a 2h' },
+    { id: 4, message: "Deadline approchante: Rapport d'analyse", link: '/etudiant/taches', time: 'Il y a 3h' },
+    { id: 5, message: 'Message de Dr. Trabelsi', link: '/etudiant/messagerie', time: 'Hier' },
+  ];
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -47,7 +33,6 @@ export function Navbar({ title }: { title: string }) {
         setShowUserMenu(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);

@@ -53,77 +53,253 @@ import { ServiceStagesEtudiants } from "./pages/service-stages/Etudiants";
 import { ServiceStagesStages } from "./pages/service-stages/Stages";
 import { ServiceStagesProfil } from "./pages/service-stages/Profil";
 
+const LayoutError = () => {
+  return (
+    <div className="p-6 text-red-600">
+      Erreur dans le layout principal. Vérifie Sidebar, Navbar ou la page appelée.
+    </div>
+  );
+};
+
+const AuthError = () => {
+  return (
+    <div className="p-6 text-red-600">
+      Erreur dans la partie authentification.
+    </div>
+  );
+};
+
 export const router = createBrowserRouter([
-  // MODIF : la page racine redirige directement vers login,
-  // sans charger RootLayout, Sidebar, Navbar, etc.
   {
     path: "/",
     element: <Navigate to="/auth/login" replace />,
   },
 
-  // MODIF : routes auth séparées du layout principal
   {
     path: "/auth",
     element: <AuthLayout />,
-    errorElement: <div>Erreur auth</div>,
+    errorElement: <AuthError />,
     children: [
-      { index: true, element: <Navigate to="/auth/login" replace /> },
-      { path: "login", element: <LoginPage /> },
-      { path: "register", element: <RegisterPage /> },
-      { path: "forgot-password", element: <ForgotPasswordPage /> },
-      { path: "change-password", element: <ChangePasswordPage /> },
+      {
+        index: true,
+        element: <Navigate to="/auth/login" replace />,
+      },
+      {
+        path: "login",
+        element: <LoginPage />,
+      },
+      {
+        path: "register",
+        element: <RegisterPage />,
+      },
+      {
+        path: "forgot-password",
+        element: <ForgotPasswordPage />,
+      },
+      {
+        path: "change-password",
+        element: <ChangePasswordPage />,
+      },
     ],
   },
 
-  // MODIF : toutes les pages avec Sidebar/Navbar sont ici
   {
-    path: "/",
+    path: "/etudiant",
     element: <RootLayout />,
-    errorElement: <div>Erreur dans le layout principal</div>,
+    errorElement: <LayoutError />,
     children: [
-      // Étudiant routes
-      { path: "etudiant/dashboard", element: <EtudiantDashboard /> },
-      { path: "etudiant/pfe", element: <EtudiantPFE /> },
-      { path: "etudiant/taches", element: <EtudiantTaches /> },
-      { path: "etudiant/assistant-ia", element: <EtudiantAssistantIA /> },
-      { path: "etudiant/messagerie", element: <EtudiantMessagerie /> },
-      { path: "etudiant/reunions", element: <EtudiantReunions /> },
-      { path: "etudiant/profil", element: <EtudiantProfil /> },
+      {
+        index: true,
+        element: <Navigate to="/etudiant/dashboard" replace />,
+      },
+      {
+        path: "dashboard",
+        element: <EtudiantDashboard />,
+      },
+      {
+        path: "pfe",
+        element: <EtudiantPFE />,
+      },
+      {
+        path: "taches",
+        element: <EtudiantTaches />,
+      },
+      {
+        path: "assistant-ia",
+        element: <EtudiantAssistantIA />,
+      },
+      {
+        path: "messagerie",
+        element: <EtudiantMessagerie />,
+      },
+      {
+        path: "reunions",
+        element: <EtudiantReunions />,
+      },
+      {
+        path: "profil",
+        element: <EtudiantProfil />,
+      },
+    ],
+  },
 
-      // Encadrant routes
-      { path: "encadrant/dashboard", element: <EncadrantDashboard /> },
-      { path: "encadrant/etudiants", element: <EncadrantEtudiants /> },
-      { path: "encadrant/etudiants/:id", element: <EncadrantEtudiantDetail /> },
-      { path: "encadrant/validation", element: <EncadrantValidation /> },
-      { path: "encadrant/reunions", element: <EncadrantReunions /> },
-      { path: "encadrant/messagerie", element: <EncadrantMessagerie /> },
-      { path: "encadrant/profil", element: <EncadrantProfil /> },
+  {
+    path: "/encadrant",
+    element: <RootLayout />,
+    errorElement: <LayoutError />,
+    children: [
+      {
+        index: true,
+        element: <Navigate to="/encadrant/dashboard" replace />,
+      },
+      {
+        path: "dashboard",
+        element: <EncadrantDashboard />,
+      },
+      {
+        path: "etudiants",
+        element: <EncadrantEtudiants />,
+      },
+      {
+        path: "etudiants/:id",
+        element: <EncadrantEtudiantDetail />,
+      },
+      {
+        path: "validation",
+        element: <EncadrantValidation />,
+      },
+      {
+        path: "reunions",
+        element: <EncadrantReunions />,
+      },
+      {
+        path: "messagerie",
+        element: <EncadrantMessagerie />,
+      },
+      {
+        path: "profil",
+        element: <EncadrantProfil />,
+      },
+    ],
+  },
 
-      // Admin routes
-      { path: "admin/dashboard", element: <AdminDashboard /> },
-      { path: "admin/comptes", element: <AdminComptes /> },
-      { path: "admin/affectations", element: <AdminAffectations /> },
-      { path: "admin/supervision", element: <AdminSupervision /> },
-      { path: "admin/profil", element: <AdminProfil /> },
+  {
+    path: "/admin",
+    element: <RootLayout />,
+    errorElement: <LayoutError />,
+    children: [
+      {
+        index: true,
+        element: <Navigate to="/admin/dashboard" replace />,
+      },
+      {
+        path: "dashboard",
+        element: <AdminDashboard />,
+      },
+      {
+        path: "comptes",
+        element: <AdminComptes />,
+      },
+      {
+        path: "affectations",
+        element: <AdminAffectations />,
+      },
+      {
+        path: "supervision",
+        element: <AdminSupervision />,
+      },
+      {
+        path: "profil",
+        element: <AdminProfil />,
+      },
+    ],
+  },
 
-      // Directeur routes
-      { path: "directeur/dashboard", element: <DirecteurDashboard /> },
-      { path: "directeur/etudiants", element: <DirecteurEtudiants /> },
-      { path: "directeur/affectations", element: <DirecteurAffectations /> },
-      { path: "directeur/profil", element: <DirecteurProfil /> },
+  {
+    path: "/directeur",
+    element: <RootLayout />,
+    errorElement: <LayoutError />,
+    children: [
+      {
+        index: true,
+        element: <Navigate to="/directeur/dashboard" replace />,
+      },
+      {
+        path: "dashboard",
+        element: <DirecteurDashboard />,
+      },
+      {
+        path: "etudiants",
+        element: <DirecteurEtudiants />,
+      },
+      {
+        path: "affectations",
+        element: <DirecteurAffectations />,
+      },
+      {
+        path: "profil",
+        element: <DirecteurProfil />,
+      },
+    ],
+  },
 
-      // Responsable routes
-      { path: "responsable/dashboard", element: <ResponsableDashboard /> },
-      { path: "responsable/comptes", element: <ResponsableComptes /> },
-      { path: "responsable/affectations", element: <ResponsableAffectations /> },
-      { path: "responsable/encadrants", element: <ResponsableEncadrants /> },
-      { path: "responsable/profil", element: <ResponsableProfil /> },
+  {
+    path: "/responsable",
+    element: <RootLayout />,
+    errorElement: <LayoutError />,
+    children: [
+      {
+        index: true,
+        element: <Navigate to="/responsable/dashboard" replace />,
+      },
+      {
+        path: "dashboard",
+        element: <ResponsableDashboard />,
+      },
+      {
+        path: "comptes",
+        element: <ResponsableComptes />,
+      },
+      {
+        path: "affectations",
+        element: <ResponsableAffectations />,
+      },
+      {
+        path: "encadrants",
+        element: <ResponsableEncadrants />,
+      },
+      {
+        path: "profil",
+        element: <ResponsableProfil />,
+      },
+    ],
+  },
 
-      // Service stages routes
-      { path: "service-stages/dashboard", element: <ServiceStagesDashboard /> },
-      { path: "service-stages/etudiants", element: <ServiceStagesEtudiants /> },
-      { path: "service-stages/stages", element: <ServiceStagesStages /> },
-      { path: "service-stages/profil", element: <ServiceStagesProfil /> },
+  {
+    path: "/service-stages",
+    element: <RootLayout />,
+    errorElement: <LayoutError />,
+    children: [
+      {
+        index: true,
+        element: <Navigate to="/service-stages/dashboard" replace />,
+      },
+      {
+        path: "dashboard",
+        element: <ServiceStagesDashboard />,
+      },
+      {
+        path: "etudiants",
+        element: <ServiceStagesEtudiants />,
+      },
+      {
+        path: "stages",
+        element: <ServiceStagesStages />,
+      },
+      {
+        path: "profil",
+        element: <ServiceStagesProfil />,
+      },
     ],
   },
 
@@ -132,93 +308,3 @@ export const router = createBrowserRouter([
     element: <div>404 - Page introuvable</div>,
   },
 ]);
-/*import { createBrowserRouter, Navigate } from 'react-router-dom';
-//import { createBrowserRouter } from 'react-router';
-import { RootLayout } from './layouts/RootLayout';
-import { AuthLayout } from './layouts/AuthLayout';
-
-// Auth pages
-import { LoginPage } from './pages/auth/LoginPage';
-import { RegisterPage } from './pages/auth/RegisterPage';
-import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
-import { ChangePasswordPage } from './pages/auth/ChangePasswordPage';
-
-// Étudiant pages
-import { EtudiantDashboard } from './pages/etudiant/Dashboard';
-import { EtudiantPFE } from './pages/etudiant/PFE';
-import { EtudiantTaches } from './pages/etudiant/Taches';
-import { EtudiantMessagerie } from './pages/etudiant/Messagerie';
-import { EtudiantReunions } from './pages/etudiant/Reunions';
-import { EtudiantProfil } from './pages/etudiant/Profil';
-import { EtudiantAssistantIA } from './pages/etudiant/AssistantIA';
-
-// Encadrant pages
-import { EncadrantDashboard } from './pages/encadrant/Dashboard';
-import { EncadrantEtudiants } from './pages/encadrant/Etudiants';
-import { EncadrantValidation } from './pages/encadrant/Validation';
-import { EncadrantReunions } from './pages/encadrant/Reunions';
-import { EncadrantMessagerie } from './pages/encadrant/Messagerie';
-import { EncadrantProfil } from './pages/encadrant/Profil';
-import { EncadrantEtudiantDetail } from './pages/encadrant/EtudiantDetail';
-
-// Responsable pages
-import { AdminDashboard } from './pages/admin/Dashboard';
-import { AdminComptes } from './pages/admin/Comptes';
-import { AdminAffectations } from './pages/admin/Affectations';
-import { AdminSupervision } from './pages/admin/Supervision';
-import { AdminProfil } from './pages/admin/Profil';
-
-// Directeur pages
-import { DirecteurDashboard } from './pages/directeur/Dashboard';
-import { DirecteurProfil } from './pages/directeur/Profil';
-
-export const router = createBrowserRouter([
-  {
-    path: '/',
-    element: <RootLayout />,
-    children: [
-      // Étudiant routes
-      { path: 'etudiant/dashboard', element: <EtudiantDashboard /> },
-      { path: 'etudiant/pfe', element: <EtudiantPFE /> },
-      { path: 'etudiant/taches', element: <EtudiantTaches /> },
-      { path: 'etudiant/assistant-ia', element: <EtudiantAssistantIA /> },
-      { path: 'etudiant/messagerie', element: <EtudiantMessagerie /> },
-      { path: 'etudiant/reunions', element: <EtudiantReunions /> },
-      { path: 'etudiant/profil', element: <EtudiantProfil /> },
-
-      // Encadrant routes
-      { path: 'encadrant/dashboard', element: <EncadrantDashboard /> },
-      { path: 'encadrant/etudiants', element: <EncadrantEtudiants /> },
-      { path: 'encadrant/etudiants/:id', element: <EncadrantEtudiantDetail /> },
-      { path: 'encadrant/validation', element: <EncadrantValidation /> },
-      { path: 'encadrant/reunions', element: <EncadrantReunions /> },
-      { path: 'encadrant/messagerie', element: <EncadrantMessagerie /> },
-      { path: 'encadrant/profil', element: <EncadrantProfil /> },
-
-      // Admin routes
-      { path: 'admin/dashboard', element: <AdminDashboard /> },
-      { path: 'admin/comptes', element: <AdminComptes /> },
-      { path: 'admin/affectations', element: <AdminAffectations /> },
-      { path: 'admin/supervision', element: <AdminSupervision /> },
-      { path: 'admin/profil', element: <AdminProfil /> },
-
-      // Directeur routes
-      { path: 'directeur/dashboard', element: <DirecteurDashboard /> },
-      { path: 'directeur/profil', element: <DirecteurProfil /> },
-
-      // Default redirect
-      { index: true, element: <EtudiantDashboard /> },
-    ],
-  },
-  {
-    path: '/auth',
-    element: <AuthLayout />,
-    children: [
-      { path: 'login', element: <LoginPage /> },
-      { path: 'register', element: <RegisterPage /> },
-      { path: 'forgot-password', element: <ForgotPasswordPage /> },
-      { path: 'change-password', element: <ChangePasswordPage /> },
-    ],
-  },
-]);
-*/
