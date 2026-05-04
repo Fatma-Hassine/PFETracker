@@ -40,5 +40,58 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     @Query("SELECT DISTINCT m.pfeId FROM Message m WHERE m.senderId = :userId OR m.receiverId = :userId")
     List<Long> findDistinctPfeIdsByUser(@Param("userId") Long userId);
+
+    @Query("SELECT m FROM Message m WHERE m.pfeId = :pfeId AND " +
+           "((m.senderId = :user1 AND m.receiverId = :user2) OR " +
+           "(m.senderId = :user2 AND m.receiverId = :user1)) AND " +
+           "m.content LIKE %:keyword% " +
+           "ORDER BY m.createdAt DESC")
+    Page<Message> searchConversation(
+            @Param("pfeId") Long pfeId,
+            @Param("user1") Long user1,
+            @Param("user2") Long user2,
+            @Param("keyword") String keyword,
+            Pageable pageable);
+
+    @Query("SELECT m FROM Message m WHERE m.pfeId = :pfeId AND " +
+           "((m.senderId = :user1 AND m.receiverId = :user2) OR " +
+           "(m.senderId = :user2 AND m.receiverId = :user1)) AND " +
+           "m.createdAt BETWEEN :startDate AND :endDate " +
+           "ORDER BY m.createdAt DESC")
+    Page<Message> findConversationByDateRange(
+            @Param("pfeId") Long pfeId,
+            @Param("user1") Long user1,
+            @Param("user2") Long user2,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate,
+            Pageable pageable);
+
+    @Query("SELECT m FROM Message m WHERE m.pfeId = :pfeId AND " +
+           "((m.senderId = :user1 AND m.receiverId = :user2) OR " +
+           "(m.senderId = :user2 AND m.receiverId = :user1)) AND " +
+           "m.content LIKE %:keyword% AND " +
+           "m.createdAt BETWEEN :startDate AND :endDate " +
+           "ORDER BY m.createdAt DESC")
+    Page<Message> searchConversationByDateRange(
+            @Param("pfeId") Long pfeId,
+            @Param("user1") Long user1,
+            @Param("user2") Long user2,
+            @Param("keyword") String keyword,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate,
+            Pageable pageable);
+
+    @Query("SELECT m FROM Message m WHERE m.pfeId = :pfeId AND m.content LIKE %:keyword% " +
+           "ORDER BY m.createdAt DESC")
+    Page<Message> searchByKeywordInPfe(@Param("pfeId") Long pfeId, @Param("keyword") String keyword, Pageable pageable);
+
+    @Query("SELECT m FROM Message m WHERE m.pfeId = :pfeId AND " +
+           "m.createdAt BETWEEN :startDate AND :endDate " +
+           "ORDER BY m.createdAt DESC")
+    Page<Message> findByPfeIdAndDateRange(
+            @Param("pfeId") Long pfeId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate,
+            Pageable pageable);
 }
 

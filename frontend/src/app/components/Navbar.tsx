@@ -4,19 +4,15 @@ import { useRole } from '../contexts/RoleContext';
 import { useNavigate } from 'react-router-dom';  // ✅ corrigé
 
 import { Bell, ChevronDown } from 'lucide-react';
-
-interface Notification {
-  id: number;
-  message: string;
-  link: string;
-  time: string;
-}
+import notificationService, { NotificationDTO } from '../../api/notificationService';
+import { useWebSocket, WebSocketMessage } from '../hooks/useWebSocket';
 
 export function Navbar({ title }: { title: string }) {
-  const { notificationCount, setNotificationCount, logout } = useRole();
+  const { notificationCount, setNotificationCount, logout, user } = useRole();
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [notifications, setNotifications] = useState<NotificationDTO[]>([]);
   const notifRef = useRef<HTMLDivElement>(null);
   const userRef = useRef<HTMLDivElement>(null);
 
@@ -41,10 +37,19 @@ export function Navbar({ title }: { title: string }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleNotificationClick = (link: string) => {
+  const handleNotificationClick = async (notif: NotificationDTO) => {
     setShowNotifications(false);
-    setNotificationCount(Math.max(0, notificationCount - 1));
-    navigate(link);
+    try {
+      if (!notif.isRead) {
+        await notificationService.markReadByAction(notif.id);
+        setNotificationCount(Math.max(0, notificationCount - 1));
+      }
+      if (notif.actionUrl) {
+        navigate(notif.actionUrl);
+      }
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
   };
 
   const handleLogout = () => {
@@ -76,16 +81,31 @@ export function Navbar({ title }: { title: string }) {
                 <h3 className="font-semibold">Notifications</h3>
               </div>
               <div className="max-h-96 overflow-y-auto">
-                {notifications.map((notif) => (
-                  <button
-                    key={notif.id}
-                    onClick={() => handleNotificationClick(notif.link)}
-                    className="w-full p-4 hover:bg-gray-50 border-b border-gray-100 text-left"
-                  >
-                    <p className="text-sm text-gray-800">{notif.message}</p>
-                    <p className="text-xs text-gray-500 mt-1">{notif.time}</p>
-                  </button>
-                ))}
+                {notifications.length === 0 ? (
+                  <p className="p-4 text-center text-gray-500 text-sm">Aucune notification</p>
+                ) : (
+                  notifications.map((notif) => (
+                    <button
+                      key={notif.id}
+                      onClick={() => handleNotificationClick(notif)}
+                      className={`w-full p-4 hover:bg-gray-50 border-b border-gray-100 text-left ${
+                        !notif.isRead ? 'bg-blue-50' : ''
+                      }`}
+                    >
+                      <p className={`text-sm ${!notif.isRead ? 'font-semibold' : ''} text-gray-800`}>
+                        {notif.message}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        {new Date(notif.createdAt).toLocaleString('fr-FR', {
+                          day: '2-digit',
+                          month: 'short',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </p>
+                    </button>
+                  ))
+                )}
               </div>
             </div>
           )}

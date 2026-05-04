@@ -121,15 +121,97 @@ public class MessageService {
     @Transactional(readOnly = true)
     public List<MessageDTO> getMessagesByPfe(Long pfeId, Long userId) {
         PFE pfe = pfeRepository.findById(pfeId)
-                .orElseThrow(() -> new ResourceNotFoundException("PFE non trouvÃ©"));
+                .orElseThrow(() -> new ResourceNotFoundException("PFE non trouvé"));
 
         if (!isParticipantInPFE(userId, pfe)) {
-            throw new UnauthorizedException("AccÃ¨s non autorisÃ©");
+            throw new UnauthorizedException("Accès non autorisé");
         }
 
         return messageRepository.findByPfeId(pfeId).stream()
                 .map(msg -> enrichWithUserNames(messageMapper.toDTO(msg)))
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<MessageDTO> searchConversation(Long pfeId, Long userId, Long otherUserId, String keyword, int page, int size) {
+        PFE pfe = pfeRepository.findById(pfeId)
+                .orElseThrow(() -> new ResourceNotFoundException("PFE non trouvé"));
+
+        if (!isParticipantInPFE(userId, pfe)) {
+            throw new UnauthorizedException("Accès non autorisé à cette conversation");
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<Message> messages = messageRepository.searchConversation(pfeId, userId, otherUserId, keyword, pageable);
+
+        List<MessageDTO> enriched = messages.getContent().stream()
+                .map(msg -> enrichWithUserNames(messageMapper.toDTO(msg)))
+                .collect(Collectors.toList());
+
+        return PageResponse.<MessageDTO>builder()
+                .content(enriched)
+                .pageNumber(messages.getNumber())
+                .pageSize(messages.getSize())
+                .totalElements(messages.getTotalElements())
+                .totalPages(messages.getTotalPages())
+                .last(messages.isLast())
+                .first(messages.isFirst())
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<MessageDTO> getConversationByDateRange(Long pfeId, Long userId, Long otherUserId, 
+                                                               LocalDateTime startDate, LocalDateTime endDate, int page, int size) {
+        PFE pfe = pfeRepository.findById(pfeId)
+                .orElseThrow(() -> new ResourceNotFoundException("PFE non trouvé"));
+
+        if (!isParticipantInPFE(userId, pfe)) {
+            throw new UnauthorizedException("Accès non autorisé à cette conversation");
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<Message> messages = messageRepository.findConversationByDateRange(pfeId, userId, otherUserId, startDate, endDate, pageable);
+
+        List<MessageDTO> enriched = messages.getContent().stream()
+                .map(msg -> enrichWithUserNames(messageMapper.toDTO(msg)))
+                .collect(Collectors.toList());
+
+        return PageResponse.<MessageDTO>builder()
+                .content(enriched)
+                .pageNumber(messages.getNumber())
+                .pageSize(messages.getSize())
+                .totalElements(messages.getTotalElements())
+                .totalPages(messages.getTotalPages())
+                .last(messages.isLast())
+                .first(messages.isFirst())
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public PageResponse<MessageDTO> searchByKeywordInPfe(Long pfeId, Long userId, String keyword, int page, int size) {
+        PFE pfe = pfeRepository.findById(pfeId)
+                .orElseThrow(() -> new ResourceNotFoundException("PFE non trouvé"));
+
+        if (!isParticipantInPFE(userId, pfe)) {
+            throw new UnauthorizedException("Accès non autorisé");
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<Message> messages = messageRepository.searchByKeywordInPfe(pfeId, keyword, pageable);
+
+        List<MessageDTO> enriched = messages.getContent().stream()
+                .map(msg -> enrichWithUserNames(messageMapper.toDTO(msg)))
+                .collect(Collectors.toList());
+
+        return PageResponse.<MessageDTO>builder()
+                .content(enriched)
+                .pageNumber(messages.getNumber())
+                .pageSize(messages.getSize())
+                .totalElements(messages.getTotalElements())
+                .totalPages(messages.getTotalPages())
+                .last(messages.isLast())
+                .first(messages.isFirst())
+                .build();
     }
 
     private boolean isParticipantInPFE(Long userId, PFE pfe) {

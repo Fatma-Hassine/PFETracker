@@ -27,7 +27,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -246,6 +248,175 @@ public class DashboardService {
                         .pfeId(t.getPfeId())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    public com.pfetracker.dto.module3.DashboardDeptManagerDTO getDeptManagerDashboard(Long managerId) {
+        // Implement department manager dashboard
+        User manager = userRepository.findById(managerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Manager not found with ID: " + managerId));
+        
+        Long departmentId = manager.getDepartmentId();
+        
+        // Get all users and filter by department and student role
+        List<User> allUsers = userRepository.findAll();
+        List<User> departmentStudents = allUsers.stream()
+                .filter(u -> departmentId != null && departmentId.equals(u.getDepartmentId()))
+                .filter(u -> "STUDENT".equals(u.getRole().toString()))
+                .collect(Collectors.toList());
+        
+        int totalStudents = departmentStudents.size();
+        
+        // Get all PFEs and filter by department students
+        List<PFE> allPFEs = pfeRepository.findAll();
+        java.util.Set<Long> deptStudentIds = departmentStudents.stream()
+                .map(User::getId)
+                .collect(Collectors.toSet());
+        
+        List<PFE> departmentPFEs = allPFEs.stream()
+                .filter(p -> deptStudentIds.contains(p.getStudentId()))
+                .collect(Collectors.toList());
+        
+        // Calculate statistics
+        int activePFEs = (int) departmentPFEs.stream()
+                .filter(p -> p.getStatus() == PFE.PFEStatus.IN_PROGRESS)
+                .count();
+        
+        int completedPFEs = (int) departmentPFEs.stream()
+                .filter(p -> p.getStatus() == PFE.PFEStatus.COMPLETED || p.getStatus() == PFE.PFEStatus.DEFENDED)
+                .count();
+        
+        int delayedPFEs = (int) departmentPFEs.stream()
+                .filter(p -> p.getStatus() == PFE.PFEStatus.DELAYED)
+                .count();
+        
+        double averageProgress = departmentPFEs.isEmpty() ? 0.0 :
+                departmentPFEs.stream()
+                        .mapToDouble(PFE::getGlobalProgress)
+                        .average()
+                        .orElse(0.0);
+        
+        // Get meeting statistics
+        List<Meeting> allMeetings = meetingRepository.findAll();
+        
+        // Create mapping of PFE ID to Student ID for department
+        java.util.Set<Long> deptPfeIds = departmentPFEs.stream()
+                .map(PFE::getId)
+                .collect(Collectors.toSet());
+        
+        List<Meeting> departmentMeetings = allMeetings.stream()
+                .filter(m -> deptPfeIds.contains(m.getPfeId()))
+                .collect(Collectors.toList());
+        
+        long totalMeetings = departmentMeetings.size();
+        long completedMeetings = departmentMeetings.stream()
+                .filter(m -> m.getStatus() == Meeting.MeetingStatus.COMPLETED)
+                .count();
+        
+        return com.pfetracker.dto.module3.DashboardDeptManagerDTO.builder()
+                .managerId(managerId)
+                .departmentName(departmentId != null ? "Department-" + departmentId : "Unknown")
+                .totalStudents(totalStudents)
+                .activePFEs(activePFEs)
+                .completedPFEs(completedPFEs)
+                .delayedPFEs(delayedPFEs)
+                .averageProgress(Math.round(averageProgress * 100.0) / 100.0)
+                .totalMeetings(totalMeetings)
+                .completedMeetings(completedMeetings)
+                .overallInactiveStudents(0) // Simplified: User entity doesn't have lastLogin
+                .build();
+    }
+
+    public com.pfetracker.dto.module3.DashboardDirectorDTO getDirectorDashboard(Long directorId) {
+        // Implement director dashboard with system-wide statistics
+        
+        // Get all users
+        List<User> allUsers = userRepository.findAll();
+        
+        // Get all departments (unique departmentIds)
+        java.util.Set<Long> uniqueDepartmentsSet = allUsers.stream()
+                .map(User::getDepartmentId)
+                .filter(deptId -> deptId != null)
+                .collect(Collectors.toSet());
+        
+        int totalDepartments = uniqueDepartmentsSet.size();
+        
+        // Get all students
+        List<User> allStudents = allUsers.stream()
+                .filter(u -> "STUDENT".equals(u.getRole().toString()))
+                .collect(Collectors.toList());
+        
+        int totalStudents = allStudents.size();
+        
+        // Get all PFEs
+        List<PFE> allPFEs = pfeRepository.findAll();
+        int totalPFEs = allPFEs.size();
+        
+        int completedPFEs = (int) allPFEs.stream()
+                .filter(p -> p.getStatus() == PFE.PFEStatus.COMPLETED || p.getStatus() == PFE.PFEStatus.DEFENDED)
+                .count();
+        
+        int delayedPFEs = (int) allPFEs.stream()
+                .filter(p -> p.getStatus() == PFE.PFEStatus.DELAYED)
+                .count();
+        
+        double globalAverageProgress = allPFEs.isEmpty() ? 0.0 :
+                allPFEs.stream()
+                        .mapToDouble(PFE::getGlobalProgress)
+                        .average()
+                        .orElse(0.0);
+        
+        // Get all meetings
+        List<Meeting> allMeetings = meetingRepository.findAll();
+        long totalMeetings = allMeetings.size();
+        long completedMeetings = allMeetings.stream()
+                .filter(m -> m.getStatus() == Meeting.MeetingStatus.COMPLETED)
+                .count();
+        
+        // Calculate PFE status distribution
+        Map<String, Long> pfeStatusDistribution = allPFEs.stream()
+                .collect(Collectors.groupingBy(
+                        p -> p.getStatus().toString(),
+                        Collectors.counting()
+                ));
+        
+        // Calculate department progress comparison
+        Map<String, Double> departmentProgressComparison = new HashMap<>();
+        java.util.Set<Long> studentIds = allStudents.stream()
+                .map(User::getId)
+                .collect(Collectors.toSet());
+        
+        for (Long deptId : uniqueDepartmentsSet) {
+            java.util.Set<Long> deptStudentIds = allStudents.stream()
+                    .filter(s -> deptId.equals(s.getDepartmentId()))
+                    .map(User::getId)
+                    .collect(Collectors.toSet());
+            
+            double avgProgress = allPFEs.stream()
+                    .filter(p -> deptStudentIds.contains(p.getStudentId()))
+                    .mapToDouble(PFE::getGlobalProgress)
+                    .average()
+                    .orElse(0.0);
+            
+            departmentProgressComparison.put("Dept-" + deptId, Math.round(avgProgress * 100.0) / 100.0);
+        }
+        
+        return com.pfetracker.dto.module3.DashboardDirectorDTO.builder()
+                .directorId(directorId)
+                .totalDepartments(totalDepartments)
+                .totalStudents(totalStudents)
+                .totalPFEs(totalPFEs)
+                .completedPFEs(completedPFEs)
+                .delayedPFEs(delayedPFEs)
+                .globalAverageProgress(Math.round(globalAverageProgress * 100.0) / 100.0)
+                .totalMeetings(totalMeetings)
+                .completedMeetings(completedMeetings)
+                .criticalAlertCount((int) allPFEs.stream()
+                        .filter(p -> p.getStatus() == PFE.PFEStatus.DELAYED || 
+                               p.getStatus() == PFE.PFEStatus.SUSPENDED)
+                        .count())
+                .pfeStatusDistribution(pfeStatusDistribution)
+                .departmentProgressComparison(departmentProgressComparison)
+                .build();
     }
 }
 

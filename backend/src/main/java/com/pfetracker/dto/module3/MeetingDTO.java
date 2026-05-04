@@ -30,5 +30,7 @@ public class MeetingDTO {
     private LocalDateTime updatedAt;
     private String report;
     private String rejectionReason;
+    private Boolean reminderSent24h;
+    private Boolean reminderSent15min;
 }
 
