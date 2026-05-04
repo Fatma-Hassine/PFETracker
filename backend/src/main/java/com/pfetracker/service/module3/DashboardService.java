@@ -7,7 +7,7 @@ import com.pfetracker.dto.module3.MeetingDTO;
 import com.pfetracker.dto.module3.StudentSummaryDTO;
 import com.pfetracker.dto.module3.TaskSummaryDTO;
 import com.pfetracker.entity.module3.Meeting;
-import com.pfetracker.entity.module3.Notification;
+import com.pfetracker.entity.module3.NotificationM3;
 import com.pfetracker.entity.module3.PFE;
 import com.pfetracker.entity.module3.Task;
 import com.pfetracker.entity.module3.User;
@@ -15,7 +15,7 @@ import com.pfetracker.exception.module3.ResourceNotFoundException;
 import com.pfetracker.mapper.module3.MeetingMapper;
 import com.pfetracker.mapper.module3.NotificationMapper;
 import com.pfetracker.repository.module3.MeetingRepository;
-import com.pfetracker.repository.module3.NotificationRepository;
+import com.pfetracker.repository.module3.NotificationRepositoryM3;
 import com.pfetracker.repository.module3.PFERepository;
 import com.pfetracker.repository.module3.TaskRepository;
 import com.pfetracker.repository.module3.UserRepository;
@@ -41,7 +41,7 @@ public class DashboardService {
     private final PFERepository pfeRepository;
     private final TaskRepository taskRepository;
     private final MeetingRepository meetingRepository;
-    private final NotificationRepository notificationRepository;
+    private final NotificationRepositoryM3 notificationRepository;
     private final UserRepository userRepository;
     private final MeetingMapper meetingMapper;
     private final NotificationMapper notificationMapper;
@@ -67,7 +67,7 @@ public class DashboardService {
         MeetingDTO nextMeeting = upcomingMeetings.isEmpty() ? null : 
                 meetingMapper.toDTO(upcomingMeetings.get(0));
 
-        List<Notification> recentNotifs = notificationRepository.findByUserId(studentId, 
+        List<NotificationM3> recentNotifs = notificationRepository.findByUserId(studentId, 
                 org.springframework.data.domain.PageRequest.of(0, 5, org.springframework.data.domain.Sort.by("createdAt").descending()))
                 .getContent();
 
@@ -132,7 +132,7 @@ public class DashboardService {
 
         List<AlertDTO> alerts = generateSupervisorAlerts(activePFEs, studentSummaries);
 
-        List<Notification> recentNotifs = notificationRepository.findByUserId(supervisorId,
+        List<NotificationM3> recentNotifs = notificationRepository.findByUserId(supervisorId,
                 org.springframework.data.domain.PageRequest.of(0, 5, org.springframework.data.domain.Sort.by("createdAt").descending()))
                 .getContent();
 

@@ -1,6 +1,6 @@
 package com.pfetracker.dto.module3;
 
-import com.pfetracker.entity.module3.Notification;
+import com.pfetracker.entity.module3.NotificationM3;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -14,7 +14,7 @@ public class NotificationDTO {
     private Long id;
     private Long userId;
     private String message;
-    private Notification.NotificationType type;
+    private NotificationM3.NotificationType type;
     private Boolean isRead;
     private LocalDateTime createdAt;
     private LocalDateTime readAt;

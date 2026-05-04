@@ -63,5 +63,38 @@ backend/target/
 .vscode/
 .DS_Store
 
+# Eclipse / STS
+.classpath
+.project
+.factorypath
+.settings/
+bin/
 
+# Java / Maven
+target/
+*.class
+*.jar
+*.war
 
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Node / React
+node_modules/
+dist/
+build/
+.vite/
+
+# Env / secrets
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

@@ -6,14 +6,14 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "notifications")
+@Entity(name = "Module3Notification")
+@Table(name = "module3_notifications")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Notification {
+public class NotificationM3 {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

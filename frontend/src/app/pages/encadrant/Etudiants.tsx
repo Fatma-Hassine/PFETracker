@@ -18,6 +18,7 @@ function formatDate(date?: string) {
 
 export function EncadrantEtudiants() {
   const navigate = useNavigate();
+  const [etudiants, setEtudiants] = useState<Etudiant[]>([]);
 
   const [pfes, setPfes] = useState<Pfe[]>([]);
   const [loading, setLoading] = useState(true);

@@ -5,6 +5,18 @@ import { toast } from 'sonner';
 import { module2Api } from '../../api/module2Api';
 import { Milestone, Pfe, Task, TaskStatus } from '../../types/module2.types';
 
+type EtudiantDetail = {
+  id: number;
+  nomComplet?: string;
+  email?: string;
+  sujet?: string;
+  progression?: number;
+  dateDebutStage?: string;
+  dateFinStage?: string;
+};
+
+
+
 interface MilestoneWithTasks extends Milestone {
   tasks: Task[];
 }
