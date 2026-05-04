@@ -39,6 +39,7 @@ public class MeetingService {
     private final PFERepository pfeRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final GoogleCalendarService googleCalendarService;
 
     public MeetingDTO createMeeting(Long createdBy, CreateMeetingRequest request) {
         PFE pfe = pfeRepository.findById(request.getPfeId())
@@ -57,8 +58,22 @@ public class MeetingService {
         String provider = request.getMeetProvider();
 
         if (meetingLink == null || meetingLink.isEmpty()) {
-            meetingLink = generateMockMeetLink(request.getTitle());
-            provider = "GOOGLE_MEET";
+            // Try to generate Google Meet link; fall back to mock if integration not ready
+            try {
+                meetingLink = googleCalendarService.generateGoogleMeetLink(
+                    request.getTitle(),
+                    request.getMeetingDate(),
+                    request.getDuration(),
+                    userRepository.findById(createdBy)
+                        .map(u -> u.getEmail())
+                        .orElse("unknown@example.com")
+                );
+                provider = "GOOGLE_MEET";
+            } catch (Exception e) {
+                log.warn("Failed to generate Google Meet link, using mock link: {}", e.getMessage());
+                meetingLink = generateMockMeetLink(request.getTitle());
+                provider = "MOCK";
+            }
         }
 
         Meeting meeting = Meeting.builder()

@@ -14,6 +14,7 @@ export function ChangePasswordPage() {
     });
 
     alert("Mot de passe changé");
+   
   };
 
   return (

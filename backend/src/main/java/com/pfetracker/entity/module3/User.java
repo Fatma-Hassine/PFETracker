@@ -31,7 +31,8 @@ public class User {
 
     @Column(name = "department_id")
     private Long departmentId;
-
+    @Column(name = "password")
+    private String password;
     @Column(name = "is_active", nullable = false)
     @Builder.Default
     private Boolean isActive = true;
@@ -44,4 +45,3 @@ public class User {
         return firstName + " " + lastName;
     }
 }
-
