@@ -58,11 +58,10 @@ public class ServiceDesStagesServiceImpl implements ServiceDesStagesService {
     @Override
     public ServiceStagesDashboardResponse getDashboard() {
         return ServiceStagesDashboardResponse.builder()
-                .totalConventions(etudiantRepo.count())
-                .conventionsValidees(etudiantRepo.countByEncadrantIsNotNull())
-                .conventionsEnAttente(etudiantRepo.countByEncadrantIsNull())
-                .soutenancesPlanifiees(0L)
-                .dossiersincomplets(0L)
+                .totalEtudiants(etudiantRepo.count())
+                .stagesEnCours(getStagesEnCours().size())
+                .stagesProchesExpiration(getStagesProchesExpiration().size())
+                .stagesExpires(getStagesExpires().size())
                 .build();
     }
 

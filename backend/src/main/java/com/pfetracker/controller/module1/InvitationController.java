@@ -4,16 +4,21 @@ import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import com.pfetracker.dto.module1.InvitationResponse;
 import com.pfetracker.service.module1.InvitationService;
 
 import lombok.RequiredArgsConstructor;
 
-@RestController("invitationControllerM1")
-@RequestMapping("/invitations")
+// Fonctionnalité désactivée : le mécanisme d'invitation par code façon
+// Google Classroom (ENC-XXXXX) n'est plus utilisé pour lier encadrant et
+// étudiant. L'affectation se fait désormais soit manuellement par le chef
+// de département (ResponsableController), soit par import de fichier
+// (voir ResponsableController#importerAffectations), pour des raisons de
+// confidentialité — le code et le service restent en place mais ne sont
+// plus exposés en tant que routes REST actives.
+// @RestController("invitationControllerM1")
+// @RequestMapping("/invitations")
 @RequiredArgsConstructor
 public class InvitationController {
 	private final InvitationService invitationService;

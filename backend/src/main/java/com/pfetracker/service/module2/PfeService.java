@@ -3,8 +3,10 @@ package com.pfetracker.service.module2;
 import com.pfetracker.dto.module2.CreatePfeRequest;
 import com.pfetracker.dto.module2.UpdateProjectSheetRequest;
 import com.pfetracker.dto.module2.ValidateProjectSheetRequest;
+import com.pfetracker.entity.module2.Milestone;
 import com.pfetracker.entity.module2.Pfe;
 import com.pfetracker.entity.module2.enums.PfeStatus;
+import com.pfetracker.repository.module2.MilestoneRepository;
 import com.pfetracker.repository.module2.PfeRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,10 +20,18 @@ import java.util.List;
 public class PfeService {
 
     private final PfeRepository pfeRepository;
+    private final MilestoneRepository milestoneRepository;
+    private final MilestoneFactory milestoneFactory;
     private final CurrentUserService currentUserService;
 
     @Transactional
     public Pfe createPfe(CreatePfeRequest request) {
+        // Un étudiant n'a qu'un seul PFE
+        if (request.getStudentId() != null
+                && pfeRepository.findFirstByStudentId(request.getStudentId()).isPresent()) {
+            throw new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.CONFLICT, "Cet étudiant a déjà un PFE");
+        }
+
         Pfe pfe = new Pfe();
 
         pfe.setStudentId(request.getStudentId());
@@ -46,14 +56,18 @@ public class PfeService {
         pfe.setStatus(PfeStatus.IN_PROGRESS);
         pfe.setProgress(0.0);
 
-        /*
-         * Important :
-         * On ne crée pas les jalons ici.
-         * Le fichier Excel crée seulement le PFE + l'affectation étudiant/encadrant.
-         * Les jalons seront créés plus tard par l'étudiant ou proposés par l'assistant IA.
-         */
+        Pfe saved = pfeRepository.save(pfe);
 
-        return pfeRepository.save(pfe);
+        // MODIF : cahier des charges §5.1.1 — "Le PFE est initialisé avec les
+        // 6 jalons prédéfinis dans l'ordre chronologique". MilestoneFactory
+        // existait déjà mais n'était jamais appelée, laissant chaque PFE sans
+        // aucun jalon tant que l'étudiant n'en créait pas manuellement.
+        // L'étudiant peut toujours ajuster les dates/poids ensuite, ou
+        // demander à l'assistant IA de proposer des tâches à l'intérieur.
+        List<Milestone> jalons = milestoneFactory.createDefaultMilestones(saved);
+        milestoneRepository.saveAll(jalons);
+
+        return saved;
     }
 
     public List<Pfe> getMyPfes() {

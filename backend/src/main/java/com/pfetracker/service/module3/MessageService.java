@@ -3,14 +3,14 @@ package com.pfetracker.service.module3;
 import com.pfetracker.dto.module3.MessageDTO;
 import com.pfetracker.dto.module3.PageResponse;
 import com.pfetracker.dto.module3.SendMessageRequest;
+import com.pfetracker.entity.module2.Pfe;
 import com.pfetracker.entity.module3.Message;
-import com.pfetracker.entity.module3.PFE;
 import com.pfetracker.exception.module3.ResourceNotFoundException;
 import com.pfetracker.exception.module3.UnauthorizedException;
 import com.pfetracker.mapper.module3.MessageMapper;
+import com.pfetracker.repository.module1.UtilisateurRepository;
+import com.pfetracker.repository.module2.PfeRepository;
 import com.pfetracker.repository.module3.MessageRepository;
-import com.pfetracker.repository.module3.PFERepository;
-import com.pfetracker.repository.module3.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -32,15 +32,16 @@ public class MessageService {
 
     private final MessageRepository messageRepository;
     private final MessageMapper messageMapper;
-    private final PFERepository pfeRepository;
-    private final UserRepository userRepository;
+    private final PfeRepository pfeRepository;
+    private final UtilisateurRepository userRepository;
+    private final NotificationService notificationService;
 
     public MessageDTO sendMessage(Long senderId, SendMessageRequest request) {
-        PFE pfe = pfeRepository.findById(request.getPfeId())
-                .orElseThrow(() -> new ResourceNotFoundException("PFE non trouvÃ©: " + request.getPfeId()));
+        Pfe pfe = pfeRepository.findById(request.getPfeId())
+                .orElseThrow(() -> new ResourceNotFoundException("PFE non trouvé: " + request.getPfeId()));
 
         if (!isParticipantInPFE(senderId, pfe) || !isParticipantInPFE(request.getReceiverId(), pfe)) {
-            throw new UnauthorizedException("Vous n'Ãªtes pas autorisÃ© Ã  envoyer des messages dans ce PFE");
+            throw new UnauthorizedException("Vous n'êtes pas autorisé à envoyer des messages dans ce PFE");
         }
 
         Message message = Message.builder()
@@ -56,16 +57,23 @@ public class MessageService {
         Message saved = messageRepository.save(message);
         log.info("Message sent: id={}, from={}, to={}, pfe={}", saved.getId(), senderId, request.getReceiverId(), request.getPfeId());
 
-        return enrichWithUserNames(messageMapper.toDTO(saved));
+        MessageDTO dto = enrichWithUserNames(messageMapper.toDTO(saved));
+
+        // MODIF : cahier des charges §6.2.1 — "Nouveau message reçu" doit
+        // notifier le destinataire (in-app temps réel), ce qui n'était
+        // jamais déclenché malgré createMessageNotification() déjà prête.
+        notificationService.createMessageNotification(request.getReceiverId(), dto);
+
+        return dto;
     }
 
     @Transactional(readOnly = true)
     public PageResponse<MessageDTO> getConversation(Long pfeId, Long userId, Long otherUserId, int page, int size) {
-        PFE pfe = pfeRepository.findById(pfeId)
-                .orElseThrow(() -> new ResourceNotFoundException("PFE non trouvÃ©"));
+        Pfe pfe = pfeRepository.findById(pfeId)
+                .orElseThrow(() -> new ResourceNotFoundException("PFE non trouvé"));
 
         if (!isParticipantInPFE(userId, pfe)) {
-            throw new UnauthorizedException("AccÃ¨s non autorisÃ© Ã  cette conversation");
+            throw new UnauthorizedException("Accès non autorisé à cette conversation");
         }
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
@@ -101,7 +109,7 @@ public class MessageService {
 
     public void markAsRead(Long messageId, Long userId) {
         Message message = messageRepository.findById(messageId)
-                .orElseThrow(() -> new ResourceNotFoundException("Message non trouvÃ©"));
+                .orElseThrow(() -> new ResourceNotFoundException("Message non trouvé"));
 
         if (!message.getReceiverId().equals(userId)) {
             throw new UnauthorizedException("Vous ne pouvez pas marquer ce message comme lu");
@@ -120,7 +128,7 @@ public class MessageService {
 
     @Transactional(readOnly = true)
     public List<MessageDTO> getMessagesByPfe(Long pfeId, Long userId) {
-        PFE pfe = pfeRepository.findById(pfeId)
+        Pfe pfe = pfeRepository.findById(pfeId)
                 .orElseThrow(() -> new ResourceNotFoundException("PFE non trouvé"));
 
         if (!isParticipantInPFE(userId, pfe)) {
@@ -134,7 +142,7 @@ public class MessageService {
 
     @Transactional(readOnly = true)
     public PageResponse<MessageDTO> searchConversation(Long pfeId, Long userId, Long otherUserId, String keyword, int page, int size) {
-        PFE pfe = pfeRepository.findById(pfeId)
+        Pfe pfe = pfeRepository.findById(pfeId)
                 .orElseThrow(() -> new ResourceNotFoundException("PFE non trouvé"));
 
         if (!isParticipantInPFE(userId, pfe)) {
@@ -162,7 +170,7 @@ public class MessageService {
     @Transactional(readOnly = true)
     public PageResponse<MessageDTO> getConversationByDateRange(Long pfeId, Long userId, Long otherUserId, 
                                                                LocalDateTime startDate, LocalDateTime endDate, int page, int size) {
-        PFE pfe = pfeRepository.findById(pfeId)
+        Pfe pfe = pfeRepository.findById(pfeId)
                 .orElseThrow(() -> new ResourceNotFoundException("PFE non trouvé"));
 
         if (!isParticipantInPFE(userId, pfe)) {
@@ -189,7 +197,7 @@ public class MessageService {
 
     @Transactional(readOnly = true)
     public PageResponse<MessageDTO> searchByKeywordInPfe(Long pfeId, Long userId, String keyword, int page, int size) {
-        PFE pfe = pfeRepository.findById(pfeId)
+        Pfe pfe = pfeRepository.findById(pfeId)
                 .orElseThrow(() -> new ResourceNotFoundException("PFE non trouvé"));
 
         if (!isParticipantInPFE(userId, pfe)) {
@@ -214,16 +222,16 @@ public class MessageService {
                 .build();
     }
 
-    private boolean isParticipantInPFE(Long userId, PFE pfe) {
+    private boolean isParticipantInPFE(Long userId, Pfe pfe) {
         return pfe.getStudentId().equals(userId) ||
                (pfe.getSupervisorId() != null && pfe.getSupervisorId().equals(userId));
     }
 
     private MessageDTO enrichWithUserNames(MessageDTO dto) {
         userRepository.findById(dto.getSenderId())
-                .ifPresent(user -> dto.setSenderName(user.getFullName()));
+                .ifPresent(user -> dto.setSenderName(user.getNomComplet()));
         userRepository.findById(dto.getReceiverId())
-                .ifPresent(user -> dto.setReceiverName(user.getFullName()));
+                .ifPresent(user -> dto.setReceiverName(user.getNomComplet()));
         return dto;
     }
 }

@@ -1,8 +1,7 @@
 package com.pfetracker.mapper.module1;
-import com.pfetracker.dto.*;
 import com.pfetracker.dto.module1.ProfilUpdateRequest;
 import com.pfetracker.dto.module1.UtilisateurResponse;
-import com.pfetracker.entity.*;
+
 import com.pfetracker.entity.module1.Utilisateur;
 
 import org.springframework.stereotype.Component;

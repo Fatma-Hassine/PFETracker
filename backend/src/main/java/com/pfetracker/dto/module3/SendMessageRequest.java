@@ -18,7 +18,7 @@ public class SendMessageRequest {
     private Long receiverId;
 
     @NotBlank(message = "Le contenu est obligatoire")
-    @Size(max = 4000, message = "Le message ne doit pas dÃ©passer 4000 caractÃ¨res")
+    @Size(max = 4000, message = "Le message ne doit pas dépasser 4000 caractères")
     private String content;
 
     private String attachmentUrl;

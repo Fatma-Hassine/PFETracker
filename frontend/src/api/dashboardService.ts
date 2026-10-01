@@ -3,6 +3,11 @@ import { ApiResponse } from './messageService';
 import { MeetingDTO } from './meetingService';
 import { NotificationDTO } from './notificationService';
 
+// MODIF : ces interfaces ne correspondaient pas aux vrais DTO Java
+// (DashboardStudentDTO/DashboardSupervisorDTO) — noms de champs différents
+// (ex. "progressionGlobale" au lieu de "globalProgress"), ce qui aurait
+// renvoyé `undefined` partout côté frontend. Alignées sur le backend.
+
 export interface TaskSummaryDTO {
   id: number;
   title: string;
@@ -45,55 +50,82 @@ export interface StudentSummaryDTO {
   pfeStatus: string;
   pendingTasks: number;
   overdueTasks: number;
-  lastActivity: string;
+  lastActivity?: string;
   isInactive: boolean;
 }
 
-export interface StudentDashboardDTO {
-  progressionGlobale: number;
-  tachesEnCours: number;
-  tachesSoumises: number;
-  tachesValidees: number;
-  tachesTotal: number;
-  tachesRecentes: TaskSummaryDTO[];
-  prochainesReunions: MeetingDTO[];
-  notificationsNonLues: NotificationDTO[];
-  jalonActuel?: string;
-  prochainJalon?: string;
-  journalActivite: ActivityLogDTO[];
-  alertesActives: AlertDTO[];
+export interface DashboardStudentDTO {
+  pfeId: number;
+  pfeTitle: string;
+  globalProgress: number;
+  currentMilestone?: string;
+  nextMilestone?: string;
+  ongoingTasks: TaskSummaryDTO[];
+  upcomingDeadlines: TaskSummaryDTO[];
+  nextMeeting?: MeetingDTO;
+  recentNotifications: NotificationDTO[];
+  recentActivity?: ActivityLogDTO[];
+  activeAlerts: AlertDTO[];
 }
 
-export interface SupervisorDashboardDTO {
-  etudiants: StudentSummaryDTO[];
-  totalEtudiants: number;
-  etudiantsEnRetard: number;
-  etudiantsInactifs: number;
-  tachesAValider: TaskSummaryDTO[];
-  reunionsAVenir: MeetingDTO[];
-  alertesPrioritaires: AlertDTO[];
-  tauxMoyenProgression: number;
-  tempsMoyenReponse?: number;
+export interface DashboardSupervisorDTO {
+  supervisorId: number;
+  totalStudents: number;
+  activePFEs: number;
+  averageProgress: number;
+  students: StudentSummaryDTO[];
+  pendingValidations: TaskSummaryDTO[];
+  upcomingMeetings: MeetingDTO[];
+  priorityAlerts: AlertDTO[];
+  recentNotifications: NotificationDTO[];
+}
+
+export interface DashboardDeptManagerDTO {
+  managerId: number;
+  departmentName: string;
+  totalStudents: number;
+  activePFEs: number;
+  completedPFEs: number;
+  delayedPFEs: number;
+  averageProgress: number;
+  totalMeetings: number;
+  completedMeetings: number;
+  overallInactiveStudents: number;
+}
+
+export interface DashboardDirectorDTO {
+  directorId: number;
+  totalDepartments: number;
+  totalStudents: number;
+  totalPFEs: number;
+  completedPFEs: number;
+  delayedPFEs: number;
+  globalAverageProgress: number;
+  totalMeetings: number;
+  completedMeetings: number;
+  criticalAlertCount: number;
+  pfeStatusDistribution: Record<string, number>;
+  departmentProgressComparison: Record<string, number>;
 }
 
 const dashboardService = {
-  getStudentDashboard: async (): Promise<StudentDashboardDTO> => {
-    const res = await axiosInstance.get<ApiResponse<StudentDashboardDTO>>('/dashboard/student');
+  getStudentDashboard: async (): Promise<DashboardStudentDTO> => {
+    const res = await axiosInstance.get<ApiResponse<DashboardStudentDTO>>('/dashboard/student');
     return res.data.data;
   },
 
-  getSupervisorDashboard: async (): Promise<SupervisorDashboardDTO> => {
-    const res = await axiosInstance.get<ApiResponse<SupervisorDashboardDTO>>('/dashboard/supervisor');
+  getSupervisorDashboard: async (): Promise<DashboardSupervisorDTO> => {
+    const res = await axiosInstance.get<ApiResponse<DashboardSupervisorDTO>>('/dashboard/supervisor');
     return res.data.data;
   },
 
-  getDeptManagerDashboard: async () => {
-    const res = await axiosInstance.get<ApiResponse<any>>('/dashboard/dept-manager');
+  getDeptManagerDashboard: async (): Promise<DashboardDeptManagerDTO> => {
+    const res = await axiosInstance.get<ApiResponse<DashboardDeptManagerDTO>>('/dashboard/dept-manager');
     return res.data.data;
   },
 
-  getDirectorDashboard: async () => {
-    const res = await axiosInstance.get<ApiResponse<any>>('/dashboard/director');
+  getDirectorDashboard: async (): Promise<DashboardDirectorDTO> => {
+    const res = await axiosInstance.get<ApiResponse<DashboardDirectorDTO>>('/dashboard/director');
     return res.data.data;
   },
 };

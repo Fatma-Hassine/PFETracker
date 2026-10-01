@@ -12,19 +12,19 @@ import java.time.LocalDateTime;
 @Builder
 public class CreateMeetingRequest {
     @NotBlank(message = "Le titre est obligatoire")
-    @Size(max = 200, message = "Le titre ne doit pas dÃ©passer 200 caractÃ¨res")
+    @Size(max = 200, message = "Le titre ne doit pas dépasser 200 caractères")
     private String title;
 
-    @Size(max = 2000, message = "La description ne doit pas dÃ©passer 2000 caractÃ¨res")
+    @Size(max = 2000, message = "La description ne doit pas dépasser 2000 caractères")
     private String description;
 
-    @NotNull(message = "La date de rÃ©union est obligatoire")
-    @Future(message = "La date doit Ãªtre dans le futur")
+    @NotNull(message = "La date de réunion est obligatoire")
+    @Future(message = "La date doit être dans le futur")
     private LocalDateTime meetingDate;
 
-    @NotNull(message = "La durÃ©e est obligatoire")
-    @Min(value = 15, message = "La durÃ©e minimum est de 15 minutes")
-    @Max(value = 240, message = "La durÃ©e maximum est de 4 heures")
+    @NotNull(message = "La durée est obligatoire")
+    @Min(value = 15, message = "La durée minimum est de 15 minutes")
+    @Max(value = 240, message = "La durée maximum est de 4 heures")
     private Integer duration;
 
     @NotNull(message = "L'ID du participant est obligatoire")

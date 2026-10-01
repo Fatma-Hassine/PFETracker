@@ -15,6 +15,7 @@ import com.pfetracker.dto.module1.AuthResponse;
 import com.pfetracker.dto.module1.ChangerMotDePasseRequest;
 import com.pfetracker.dto.module1.InscriptionRequest;
 import com.pfetracker.dto.module1.LoginRequest;
+import com.pfetracker.entity.module1.Departement;
 import com.pfetracker.entity.module1.Encadrant;
 import com.pfetracker.entity.module1.Etudiant;
 import com.pfetracker.entity.module1.PasswordResetToken;
@@ -37,6 +38,7 @@ public class AuthServiceImpl implements AuthService {
     private final UtilisateurRepository utilisateurRepo;
     private final RefreshTokenRepository refreshTokenRepo;
     private final PasswordResetTokenRepository resetTokenRepo;
+    private final DepartementRepository departementRepo;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authManager;
@@ -141,10 +143,18 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException("Refresh token expiré ou révoqué");
         }
 
+        // MODIF : rotation du refresh token (§7.1 du cahier des charges) —
+        // l'ancien token est révoqué et un nouveau est émis à chaque
+        // rafraîchissement, au lieu de réutiliser indéfiniment le même.
+        rt.setRevoked(true);
+        refreshTokenRepo.save(rt);
+
         String newAccessToken = jwtService.genererAccessToken(rt.getUtilisateur());
+        RefreshToken nouveauRefreshToken = creerRefreshToken(rt.getUtilisateur());
+
         return AuthResponse.builder()
                 .accessToken(newAccessToken)
-                .refreshToken(token)
+                .refreshToken(nouveauRefreshToken.getToken())
                 .build();
     }
 
@@ -213,8 +223,9 @@ public class AuthServiceImpl implements AuthService {
         user.setMotDePasse(passwordEncoder.encode(req.getNouveauMotDePasse()));
         // MODIF : désactiver le flag mustChangePassword après 1ère connexion
         user.setMustChangePassword(false);
-        // MODIF : activer le compte après changement du mot de passe temporaire
-        user.setEnabled(true);
+        // Le compte reste en attente (enabled=false) jusqu'à validation explicite
+        // par le chef de département — étudiant ET encadrant, pour la confidentialité
+        // des accès (cf. cahier des charges §3.1 et §4.3.1).
         utilisateurRepo.save(user);
 
         // MODIF : IP_SYSTEME au lieu de null
@@ -260,9 +271,24 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private Utilisateur creerUtilisateurSelon(InscriptionRequest req, String mdpTemp) {
+        // MODIF : sans département, le compte n'apparaît jamais dans la
+        // liste "comptes en attente" d'AUCUN chef de département (elle est
+        // filtrée par departementId) — le compte reste invalidable pour
+        // toujours. Le département est donc obligatoire dès l'inscription.
+        Departement departement = departementRepo.findById(req.getDepartementId())
+                .orElseThrow(() -> new BusinessException("Département introuvable"));
+
         Utilisateur user = switch (req.getRole()) {
-            case ROLE_ETUDIANT  -> new Etudiant();
-            case ROLE_ENCADRANT -> new Encadrant();
+            case ROLE_ETUDIANT -> {
+                Etudiant e = new Etudiant();
+                e.setDepartement(departement);
+                yield e;
+            }
+            case ROLE_ENCADRANT -> {
+                Encadrant enc = new Encadrant();
+                enc.setDepartement(departement);
+                yield enc;
+            }
             default -> throw new BusinessException(
                     "Rôle non autorisé à l'auto-inscription");
         };

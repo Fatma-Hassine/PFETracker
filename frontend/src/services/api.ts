@@ -1,10 +1,60 @@
-const API_URL = "http://localhost:8083/api";
+const API_URL = "/api";
+
+function deconnecter() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("refreshToken");
+  localStorage.removeItem("role");
+  if (!window.location.pathname.startsWith("/auth")) {
+    window.location.href = "/auth/login";
+  }
+}
+
+let refreshEnCours: Promise<string | null> | null = null;
+
+/**
+ * Le token d'accès expire après 15 min (cahier §4.1.2). On le renouvelle avec le
+ * refresh token (rotation côté backend) au lieu de laisser toute l'application
+ * échouer silencieusement. Partagé par tous les clients HTTP du frontend.
+ */
+export function rafraichirToken(): Promise<string | null> {
+  if (refreshEnCours) return refreshEnCours;
+
+  const refreshToken = localStorage.getItem("refreshToken");
+  if (!refreshToken) return Promise.resolve(null);
+
+  refreshEnCours = fetch(`${API_URL}/auth/refresh`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refreshToken }),
+  })
+    .then(async (res) => {
+      if (!res.ok) return null;
+      const data = await res.json();
+      const token = data.accessToken || data.token;
+      if (!token) return null;
+      localStorage.setItem("token", token);
+      if (data.refreshToken) localStorage.setItem("refreshToken", data.refreshToken);
+      return token as string;
+    })
+    .catch(() => null)
+    .finally(() => {
+      refreshEnCours = null;
+    });
+
+  return refreshEnCours;
+}
+
+export function sessionExpiree() {
+  deconnecter();
+}
 
 export async function apiRequest<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
+  dejaRetente = false
 ): Promise<T> {
   const token = localStorage.getItem("token");
+  const estPublic = endpoint.startsWith("/auth/");
 
   const response = await fetch(`${API_URL}${endpoint}`, {
     ...options,
@@ -14,6 +64,14 @@ export async function apiRequest<T>(
       ...(options.headers || {}),
     },
   });
+
+  if (response.status === 401 && !estPublic && !dejaRetente) {
+    const nouveau = await rafraichirToken();
+    if (nouveau) {
+      return apiRequest<T>(endpoint, options, true);
+    }
+    deconnecter();
+  }
 
   if (!response.ok) {
     const text = await response.text();

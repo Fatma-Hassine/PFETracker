@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import com.pfetracker.dto.module1.DashboardGlobalResponse;
 import com.pfetracker.dto.module1.DirecteurDashboardResponse;
+import com.pfetracker.dto.module1.EncadrantResponse;
 import com.pfetracker.dto.module1.EtudiantResponse;
 import com.pfetracker.dto.module1.EtudiantStageResponse;
 @Service("directeurServiceM1")
@@ -27,6 +28,10 @@ public interface DirecteurService {
     void reaffecterEtudiant(Long etudiantId, Long nouvelEncadrantId);
 
     List<EtudiantResponse> getEtudiantsEnRetard();
+    // Nécessaire pour que le directeur puisse choisir un encadrant lors d'une
+    // affectation manuelle/réaffectation — il n'a pas accès à /admin/comptes
+    // (réservé à ROLE_ADMIN).
+    List<EncadrantResponse> getEncadrantsDisponibles();
     DirecteurDashboardResponse getDashboard(); 
     void verifierEtAffecterApresDelai();                
     void reaffecter(Long etudiantId, Long nouvelEncadrantId);

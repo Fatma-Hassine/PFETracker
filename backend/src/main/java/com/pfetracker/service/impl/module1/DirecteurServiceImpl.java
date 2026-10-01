@@ -24,6 +24,14 @@ public class DirecteurServiceImpl implements DirecteurService {
     private final EncadrantRepository encadrantRepo;
     private final LogAuditService logAuditService;
 
+    @Override
+    public List<EncadrantResponse> getEncadrantsDisponibles() {
+        return encadrantRepo.findAll()
+                .stream()
+                .map(EncadrantResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
 
     @Override
     public List<EtudiantStageResponse> getTousLesEtudiants() {

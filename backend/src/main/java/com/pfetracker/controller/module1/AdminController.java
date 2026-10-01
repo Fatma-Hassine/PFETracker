@@ -10,7 +10,7 @@ import java.util.List;
 
 @RestController("adminControllerM1")
 @RequestMapping("/admin")
-@PreAuthorize("hasRole('ROLE_ADMIN')")
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 @RequiredArgsConstructor
 public class AdminController {
 	 private final AdminService adminService;

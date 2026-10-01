@@ -16,6 +16,8 @@ public interface EtudiantRepository extends JpaRepository<Etudiant, Long>{
 
 	    List<Etudiant> findByDepartementIdAndEncadrantIsNull(Long departementId);
 
+	    List<Etudiant> findByDepartementIdAndEnabledFalse(Long departementId);
+
 	    long countByDepartementId(Long departementId);
 	    long countByEncadrantIsNotNull();
 	    long countByDepartementIdAndEncadrantIsNull(Long departementId);

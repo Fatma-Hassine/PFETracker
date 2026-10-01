@@ -23,7 +23,7 @@ import java.util.List;
  * - ajouter toutes les suggestions au projet
  */
 @RestController
-@RequestMapping("/api/v2/pfeTrack/ai")
+@RequestMapping("/v2/pfeTrack/ai")
 @RequiredArgsConstructor
 public class AiGenerationController {
 

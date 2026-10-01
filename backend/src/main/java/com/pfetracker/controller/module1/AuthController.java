@@ -5,6 +5,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.pfetracker.dto.module1.*;
+import com.pfetracker.repository.module1.DepartementRepository;
 import com.pfetracker.security.module1.JwtService;
 import com.pfetracker.service.module1.*;
 
@@ -12,15 +13,30 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @RestController("authControllerM1")
 @RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
+    private final DepartementRepository departementRepo;
 
     // MODIF : injection du JwtService pour extraire l'email du token
     private final JwtService jwtService;
+
+    // Liste publique des départements pour le formulaire d'inscription —
+    // le département est obligatoire dès l'inscription (voir InscriptionRequest).
+    @GetMapping("/departements")
+    public ResponseEntity<List<DepartementPublicResponse>> listerDepartements() {
+        return ResponseEntity.ok(
+                departementRepo.findAll().stream()
+                        .map(d -> new DepartementPublicResponse(d.getId(), d.getNom()))
+                        .collect(Collectors.toList())
+        );
+    }
 
     @PostMapping("/inscription")
     public ResponseEntity<Void> inscrire(

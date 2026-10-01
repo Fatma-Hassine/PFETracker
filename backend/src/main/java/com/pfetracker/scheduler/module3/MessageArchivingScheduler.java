@@ -1,11 +1,12 @@
 package com.pfetracker.scheduler.module3;
 
+import com.pfetracker.entity.module2.Pfe;
+import com.pfetracker.entity.module2.enums.PfeStatus;
 import com.pfetracker.entity.module3.ArchivedMessage;
 import com.pfetracker.entity.module3.Message;
-import com.pfetracker.entity.module3.PFE;
+import com.pfetracker.repository.module2.PfeRepository;
 import com.pfetracker.repository.module3.ArchivedMessageRepository;
 import com.pfetracker.repository.module3.MessageRepository;
-import com.pfetracker.repository.module3.PFERepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -23,7 +24,7 @@ public class MessageArchivingScheduler {
 
     private final MessageRepository messageRepository;
     private final ArchivedMessageRepository archivedMessageRepository;
-    private final PFERepository pfeRepository;
+    private final PfeRepository pfeRepository;
 
     /**
      * Archive messages when PFE is closed
@@ -36,13 +37,13 @@ public class MessageArchivingScheduler {
 
         try {
             // Find all closed PFEs
-            List<PFE> closedPFEs = pfeRepository.findAll().stream()
-                    .filter(pfe -> pfe.getStatus().equals(PFE.PFEStatus.COMPLETED) ||
-                                  pfe.getStatus().equals(PFE.PFEStatus.SUSPENDED) ||
-                                  pfe.getStatus().equals(PFE.PFEStatus.DEFENDED))
+            List<Pfe> closedPFEs = pfeRepository.findAll().stream()
+                    .filter(pfe -> pfe.getStatus().equals(PfeStatus.FINISHED) ||
+                                  pfe.getStatus().equals(PfeStatus.SUSPENDED) ||
+                                  pfe.getStatus().equals(PfeStatus.DEFENDED))
                     .collect(Collectors.toList());
 
-            for (PFE pfe : closedPFEs) {
+            for (Pfe pfe : closedPFEs) {
                 archiveMessagesForPFE(pfe.getId(), "PFE_CLOSED");
             }
 

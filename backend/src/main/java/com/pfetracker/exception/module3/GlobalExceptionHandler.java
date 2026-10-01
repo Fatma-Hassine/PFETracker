@@ -77,7 +77,7 @@ public class GlobalExceptionHandler {
             AccessDeniedException ex, WebRequest request) {
         log.error("Access denied: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body(ApiResponse.error("AccÃ¨s refusÃ© - Vous n'avez pas les permissions nÃ©cessaires", 
+                .body(ApiResponse.error("Accès refusé - Vous n'avez pas les permissions nécessaires", 
                         request.getDescription(false)));
     }
 
@@ -86,7 +86,7 @@ public class GlobalExceptionHandler {
             Exception ex, WebRequest request) {
         log.error("Unexpected error: ", ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("Une erreur interne est survenue. Veuillez rÃ©essayer plus tard.", 
+                .body(ApiResponse.error("Une erreur interne est survenue. Veuillez réessayer plus tard.", 
                         request.getDescription(false)));
     }
 }

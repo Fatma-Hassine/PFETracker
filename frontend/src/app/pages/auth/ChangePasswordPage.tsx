@@ -48,7 +48,7 @@ export function ChangePasswordPage() {
       setSuccess(true);
       setTimeout(() => {
         localStorage.clear();
-        window.location.href = "/auth/connexion";
+        window.location.href = "/auth/login";
       }, 2000);
     } catch (err) {
       setError(

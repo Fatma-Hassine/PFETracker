@@ -3,7 +3,9 @@ package com.pfetracker.service.module1;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.pfetracker.dto.module1.AffectationImportResultDTO;
 import com.pfetracker.dto.module1.DashboardDepartementResponse;
 import com.pfetracker.dto.module1.EncadrantChargeResponse;
 import com.pfetracker.dto.module1.EtudiantResponse;
@@ -12,6 +14,7 @@ import com.pfetracker.dto.module1.UtilisateurResponse;
 
 public interface ResponsableService {
     List<UtilisateurResponse> getComptesEnAttente(Long departementId);
+    List<UtilisateurResponse> getComptesDepartement(Long departementId);
     void validerCompte(Long userId);
     void refuserCompte(Long userId, String motif);
     void activerDesactiverCompte(Long userId, boolean activer);
@@ -22,6 +25,7 @@ public interface ResponsableService {
     List<EtudiantResponse> getEtudiantsSansEncadrant(Long departementId);
     void forcerAffectation(Long etudiantId, Long encadrantId);
     void rompreAffectation(Long etudiantId);
+    AffectationImportResultDTO importerAffectations(Long departementId, MultipartFile fichier);
     List<EncadrantChargeResponse> getChargeEncadrants(Long departementId);
     void configurerLimiteEtudiants(Long departementId, int limite);
 

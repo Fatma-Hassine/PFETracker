@@ -1,6 +1,6 @@
 package com.pfetracker.config.module1;
-import com.pfetracker.repository.*;
 import com.pfetracker.repository.module1.*;
+import com.pfetracker.service.module1.RateLimiterService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +19,7 @@ public class SchedulerConfig {
 	private final RefreshTokenRepository refreshTokenRepo;
     private final PasswordResetTokenRepository resetTokenRepo;
     private final LogAuditRepository logAuditRepo;
+    private final RateLimiterService rateLimiterService;
 
     @Scheduled(cron = "0 0 0 * * *")
     @Transactional
@@ -40,5 +41,10 @@ public class SchedulerConfig {
         LocalDateTime limite = LocalDateTime.now().minusMonths(6);
         log.info("Suppression des logs antérieurs à {}...", limite);
         logAuditRepo.supprimerLogsAnciens(limite);
+    }
+
+    @Scheduled(fixedRate = 300_000L)
+    public void nettoyerRateLimiter() {
+        rateLimiterService.nettoyerFenetresExpirees();
     }
 }

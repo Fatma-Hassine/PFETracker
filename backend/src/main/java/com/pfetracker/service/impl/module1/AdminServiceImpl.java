@@ -46,7 +46,18 @@ public class AdminServiceImpl implements AdminService{
 	        Utilisateur user = creerUtilisateurSelon(req, mdpTemp);
 	        utilisateurRepo.save(user);
 
-	        notificationService.envoyerEmailBienvenue(user.getEmail(), mdpTemp);
+	        // MODIF : ne pas faire échouer la création de compte si l'envoi
+	        // d'email échoue (serveur SMTP indisponible/mal configuré) —
+	        // même logique que AuthServiceImpl.inscrire(). Le mot de passe
+	        // temporaire peut être renvoyé via "réinitialiser-mdp" une fois
+	        // l'email opérationnel.
+	        try {
+	            notificationService.envoyerEmailBienvenue(user.getEmail(), mdpTemp);
+	        } catch (Exception e) {
+	            System.err.println("⚠️ Email de bienvenue non envoyé pour "
+	                    + user.getEmail() + " : " + e.getMessage());
+	        }
+
 	        logAuditService.log(user, "CREATION_COMPTE", null, "SUCCES",
 	                "Rôle : " + req.getRole());
 	    }
@@ -103,7 +114,12 @@ public class AdminServiceImpl implements AdminService{
 	        user.setMustChangePassword(true);
 	        utilisateurRepo.save(user);
 
-	        notificationService.envoyerEmailBienvenue(user.getEmail(), mdpTemp);
+	        try {
+	            notificationService.envoyerEmailBienvenue(user.getEmail(), mdpTemp);
+	        } catch (Exception e) {
+	            System.err.println("⚠️ Email de réinitialisation non envoyé pour "
+	                    + user.getEmail() + " : " + e.getMessage());
+	        }
 	        logAuditService.log(user, "REINITIALISATION_MDP", null, "SUCCES", null);
 	    }
 

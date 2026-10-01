@@ -4,6 +4,7 @@ import com.pfetracker.security.module3.JwtAuthenticationFilter;
 
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -42,6 +43,9 @@ public class SecurityConfig {
             )
 
             .cors(Customizer.withDefaults())
+            .exceptionHandling(e -> e.authenticationEntryPoint(
+                new org.springframework.security.web.authentication.HttpStatusEntryPoint(
+                    org.springframework.http.HttpStatus.UNAUTHORIZED)))
             .csrf(AbstractHttpConfigurer::disable)
 
             .sessionManagement(session ->
@@ -62,15 +66,18 @@ public class SecurityConfig {
                     "/v3/public/**"
                 ).permitAll()
 
+                // MODIF : hasAnyAuthority avec les noms réels de l'enum Role du Module 1
+                // (ROLE_ETUDIANT / ROLE_ENCADRANT) — "STUDENT"/"SUPERVISOR" ne
+                // correspondaient à aucune autorité réelle et bloquaient tout le monde.
                 .requestMatchers(
                     "/api/v3/messages/**",
                     "/v3/messages/**"
-                ).hasAnyRole("STUDENT", "SUPERVISOR")
+                ).hasAnyAuthority("ROLE_ETUDIANT", "ROLE_ENCADRANT")
 
                 .requestMatchers(
                     "/api/v3/comments/**",
                     "/v3/comments/**"
-                ).hasAnyRole("STUDENT", "SUPERVISOR")
+                ).hasAnyAuthority("ROLE_ETUDIANT", "ROLE_ENCADRANT")
 
                 .requestMatchers(
                     "/api/v3/notifications/**",
@@ -80,7 +87,7 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/api/v3/meetings/**",
                     "/v3/meetings/**"
-                ).hasAnyRole("STUDENT", "SUPERVISOR")
+                ).hasAnyAuthority("ROLE_ETUDIANT", "ROLE_ENCADRANT")
 
                 .requestMatchers(
                     "/api/v3/dashboard/**",
@@ -101,9 +108,20 @@ public class SecurityConfig {
     }
 
     @Bean("authenticationManagerM3")
-    
+
     public AuthenticationManager authenticationManagerM3(
             AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
+    }
+
+    // MODIF : voir SecurityConfigM1 — empêche Spring Boot d'enregistrer ce
+    // filtre comme filtre servlet global (il ne doit s'exécuter que sur la
+    // chaîne /v3/** via addFilterBefore ci-dessus).
+    @Bean
+    public FilterRegistrationBean<JwtAuthenticationFilter> disableGlobalRegistrationJwtM3(
+            JwtAuthenticationFilter filter) {
+        FilterRegistrationBean<JwtAuthenticationFilter> reg = new FilterRegistrationBean<>(filter);
+        reg.setEnabled(false);
+        return reg;
     }
 }

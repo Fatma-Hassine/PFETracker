@@ -1,6 +1,7 @@
 package com.pfetracker.controller.module1;
 import com.pfetracker.dto.module1.*;
 import com.pfetracker.service.module1.DirecteurService;
+import com.pfetracker.service.module1.ExportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -10,15 +11,21 @@ import java.util.List;
 
 @RestController("directeurControllerM1")
 @RequestMapping("/directeur")
-@PreAuthorize("hasRole('ROLE_DIRECTEUR')")
+@PreAuthorize("hasAuthority('ROLE_DIRECTEUR')")
 @RequiredArgsConstructor
 public class DirecteurController {
 	private final DirecteurService directeurService;
+	private final ExportService exportService;
 
 
     @GetMapping("/etudiants")
     public ResponseEntity<List<EtudiantStageResponse>> getTousLesEtudiants() {
         return ResponseEntity.ok(directeurService.getTousLesEtudiants());
+    }
+
+    @GetMapping("/encadrants")
+    public ResponseEntity<List<EncadrantResponse>> getEncadrantsDisponibles() {
+        return ResponseEntity.ok(directeurService.getEncadrantsDisponibles());
     }
 
     @GetMapping("/etudiants/non-affectes")
@@ -45,6 +52,25 @@ public class DirecteurController {
     @GetMapping("/dashboard")
     public ResponseEntity<DirecteurDashboardResponse> getDashboard() {
         return ResponseEntity.ok(directeurService.getDashboard());
+    }
+
+    @GetMapping("/export/excel")
+    public ResponseEntity<byte[]> exporterExcel() {
+        byte[] fichier = exportService.exporterGlobalExcel();
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=export-global.xlsx")
+                .body(fichier);
+    }
+
+    @GetMapping("/export/pdf")
+    public ResponseEntity<byte[]> exporterPdf() {
+        byte[] fichier = exportService.exporterRapportGlobalPdf();
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=rapport-global.pdf")
+                .body(fichier);
     }
 
 

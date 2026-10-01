@@ -28,6 +28,21 @@ public class TaskService {
     private final TaskHistoryRepository taskHistoryRepository;
     private final ProgressService progressService;
     private final CurrentUserService currentUserService;
+    private final com.pfetracker.service.module3.NotificationService notificationService;
+
+    /** Soumission -> encadrant ; validation/correction/assignation -> étudiant (l'autre partie que l'auteur). */
+    private void notifierSansBloquer(Task task, String action) {
+        try {
+            com.pfetracker.entity.module2.Pfe pfe = task.getMilestone().getPfe();
+            Long auteur = currentUserService.getCurrentUserId();
+            Long destinataire = auteur.equals(pfe.getStudentId()) ? pfe.getSupervisorId() : pfe.getStudentId();
+            if (destinataire != null && !destinataire.equals(auteur)) {
+                notificationService.createTaskNotification(destinataire, task, action);
+            }
+        } catch (Exception e) {
+            org.slf4j.LoggerFactory.getLogger(TaskService.class).warn("Notification tâche non envoyée : {}", e.getMessage());
+        }
+    }
 
     public List<Task> getTasksByMilestone(Long milestoneId) {
         return taskRepository.findByMilestoneId(milestoneId);
@@ -62,7 +77,7 @@ public class TaskService {
 
         Task saved = taskRepository.save(task);
         progressService.recalculateAfterTaskChange(saved);
-
+        notifierSansBloquer(saved, "ASSIGNED");
         return saved;
     }
 
@@ -89,6 +104,11 @@ public class TaskService {
         taskHistoryRepository.save(history);
 
         progressService.recalculateAfterTaskChange(saved);
+
+        if (newStatus == TaskStatus.SUBMITTED || newStatus == TaskStatus.VALIDATED
+                || newStatus == TaskStatus.TO_CORRECT) {
+            notifierSansBloquer(saved, newStatus.name());
+        }
 
         return saved;
     }

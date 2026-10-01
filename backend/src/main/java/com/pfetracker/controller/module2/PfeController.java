@@ -3,8 +3,11 @@ package com.pfetracker.controller.module2;
 import com.pfetracker.dto.module2.CreatePfeRequest;
 import com.pfetracker.dto.module2.UpdateProjectSheetRequest;
 import com.pfetracker.dto.module2.ValidateProjectSheetRequest;
+import com.pfetracker.dto.module2.WeeklyReportDTO;
 import com.pfetracker.entity.module2.Pfe;
+import com.pfetracker.service.module2.CurrentUserService;
 import com.pfetracker.service.module2.PfeService;
+import com.pfetracker.service.module2.WeeklyReportService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -15,11 +18,13 @@ import java.util.List;
  * Controller principal du Module 2 pour gérer les PFE.
  */
 @RestController
-@RequestMapping("/api/v2/pfeTrack/pfes")
+@RequestMapping("/v2/pfeTrack/pfes")
 @RequiredArgsConstructor
 public class PfeController {
 
     private final PfeService pfeService;
+    private final WeeklyReportService weeklyReportService;
+    private final CurrentUserService currentUserService;
 
     /**
      * Retourne les PFE selon l'utilisateur courant.
@@ -68,5 +73,14 @@ public class PfeController {
             @RequestBody ValidateProjectSheetRequest request
     ) {
         return pfeService.validateProjectSheet(pfeId, request);
+    }
+
+    /**
+     * Rapport hebdomadaire de l'encadrant courant (cahier des charges §5.7.2) —
+     * même contenu que celui envoyé par email chaque lundi.
+     */
+    @GetMapping("/rapport-hebdomadaire")
+    public WeeklyReportDTO getRapportHebdomadaire() {
+        return weeklyReportService.genererRapport(currentUserService.getCurrentUserId());
     }
 }

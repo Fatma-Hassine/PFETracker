@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v3/dashboard")
+@RequestMapping("/v3/dashboard")
 @RequiredArgsConstructor
 @Tag(name = "Tableaux de bord", description = "APIs pour les tableaux de bord de tous les rôles")
 @SecurityRequirement(name = "bearerAuth")
@@ -23,7 +23,7 @@ public class DashboardController {
     private final DashboardService dashboardService;
 
     @GetMapping("/student")
-    @PreAuthorize("hasRole('STUDENT')")
+    @PreAuthorize("hasAuthority('ROLE_ETUDIANT')")
     @Operation(summary = "Tableau de bord étudiant", description = "Récupère les données du tableau de bord pour un étudiant")
     public ResponseEntity<ApiResponse<DashboardStudentDTO>> getStudentDashboard() {
         Long studentId = SecurityUtils.getCurrentUserId();
@@ -32,7 +32,7 @@ public class DashboardController {
     }
 
     @GetMapping("/supervisor")
-    @PreAuthorize("hasRole('SUPERVISOR')")
+    @PreAuthorize("hasAuthority('ROLE_ENCADRANT')")
     @Operation(summary = "Tableau de bord encadrant", description = "Récupère les données du tableau de bord pour un encadrant")
     public ResponseEntity<ApiResponse<DashboardSupervisorDTO>> getSupervisorDashboard() {
         Long supervisorId = SecurityUtils.getCurrentUserId();
@@ -41,7 +41,7 @@ public class DashboardController {
     }
 
     @GetMapping("/dept-manager")
-    @PreAuthorize("hasRole('DEPT_MANAGER')")
+    @PreAuthorize("hasAuthority('ROLE_CHEF_DEPARTEMENT')")
     @Operation(summary = "Tableau de bord responsable département", description = "Récupère les données du tableau de bord pour un responsable de département")
     public ResponseEntity<ApiResponse<DashboardDeptManagerDTO>> getDeptManagerDashboard() {
         Long managerId = SecurityUtils.getCurrentUserId();
@@ -50,7 +50,7 @@ public class DashboardController {
     }
 
     @GetMapping("/director")
-    @PreAuthorize("hasRole('DIRECTOR')")
+    @PreAuthorize("hasAuthority('ROLE_DIRECTEUR')")
     @Operation(summary = "Tableau de bord directeur", description = "Récupère les données du tableau de bord pour un directeur des stages")
     public ResponseEntity<ApiResponse<DashboardDirectorDTO>> getDirectorDashboard() {
         Long directorId = SecurityUtils.getCurrentUserId();

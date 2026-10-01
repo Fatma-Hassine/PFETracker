@@ -15,7 +15,7 @@ import java.util.List;
  * Controller des mini-sprints.
  */
 @RestController
-@RequestMapping("/api/v2/pfeTrack")
+@RequestMapping("/v2/pfeTrack")
 @RequiredArgsConstructor
 public class SprintController {
 

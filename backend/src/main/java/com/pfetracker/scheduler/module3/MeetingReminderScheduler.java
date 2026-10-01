@@ -23,7 +23,7 @@ public class MeetingReminderScheduler {
     private final NotificationWebSocketController webSocketController;
 
     /**
-     * Rappel 24h avant la rÃ©union - ExÃ©cutÃ© toutes les heures
+     * Rappel 24h avant la réunion - Exécuté toutes les heures
      */
     @Scheduled(cron = "0 0 * * * *")
     @Transactional
@@ -38,7 +38,7 @@ public class MeetingReminderScheduler {
 
         for (Meeting meeting : meetings) {
             try {
-                // Notification au crÃ©ateur
+                // Notification au créateur
                 notificationService.createMeetingNotification(meeting.getCreatedBy(), meeting, "REMINDER_24H");
                 notificationService.sendMeetingReminderEmail(meeting.getCreatedBy(), meeting, 24);
 
@@ -46,7 +46,7 @@ public class MeetingReminderScheduler {
                 notificationService.createMeetingNotification(meeting.getParticipantId(), meeting, "REMINDER_24H");
                 notificationService.sendMeetingReminderEmail(meeting.getParticipantId(), meeting, 24);
 
-                // WebSocket temps rÃ©el
+                // WebSocket temps réel
                 webSocketController.sendMeetingReminder(meeting.getCreatedBy(), meeting.getId(), meeting.getTitle(), 24 * 60);
                 webSocketController.sendMeetingReminder(meeting.getParticipantId(), meeting.getId(), meeting.getTitle(), 24 * 60);
 
@@ -61,7 +61,7 @@ public class MeetingReminderScheduler {
     }
 
     /**
-     * Rappel 15 min avant la rÃ©union - ExÃ©cutÃ© toutes les minutes
+     * Rappel 15 min avant la réunion - Exécuté toutes les minutes
      */
     @Scheduled(cron = "0 * * * * *")
     @Transactional
@@ -76,7 +76,7 @@ public class MeetingReminderScheduler {
 
         for (Meeting meeting : meetings) {
             try {
-                // Notification temps rÃ©el WebSocket uniquement (in-app)
+                // Notification temps réel WebSocket uniquement (in-app)
                 webSocketController.sendMeetingReminder(meeting.getCreatedBy(), meeting.getId(), meeting.getTitle(), 15);
                 webSocketController.sendMeetingReminder(meeting.getParticipantId(), meeting.getId(), meeting.getTitle(), 15);
 
@@ -95,7 +95,7 @@ public class MeetingReminderScheduler {
     }
 
     /**
-     * Nettoyage des rÃ©unions passÃ©es - ExÃ©cutÃ© une fois par jour Ã  3h du matin
+     * Nettoyage des réunions passées - Exécuté une fois par jour à 3h du matin
      */
     @Scheduled(cron = "0 0 3 * * *")
     @Transactional

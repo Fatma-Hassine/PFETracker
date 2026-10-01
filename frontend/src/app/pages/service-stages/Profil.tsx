@@ -12,7 +12,7 @@ export function ServiceStagesProfil() {
   const [profil, setProfil] = useState<Profil | null>(null);
 
   useEffect(() => {
-    apiRequest<Profil>("/api/utilisateurs/moi").then(setProfil).catch(console.error);
+    apiRequest<Profil>("/utilisateurs/moi").then(setProfil).catch(console.error);
   }, []);
 
   if (!profil) return <p>Chargement...</p>;

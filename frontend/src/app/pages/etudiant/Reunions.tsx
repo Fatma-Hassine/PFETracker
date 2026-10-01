@@ -1,66 +1,98 @@
-import { useState } from 'react';
-import { Calendar, Clock, Download, Video } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Calendar, Clock, Video } from 'lucide-react';
 import { toast } from 'sonner';
-
-interface Meeting {
-  id: number;
-  title: string;
-  date: string;
-  time: string;
-  duration: string;
-  status: 'Confirmée' | 'En attente' | 'Annulée';
-  agenda?: string[];
-  compteRendu?: string;
-  meetLink?: string;
-}
+import { module2Api } from '../../api/module2Api';
+import { Pfe } from '../../types/module2.types';
+import meetingService, { MeetingDTO } from '../../../api/meetingService';
 
 export function EtudiantReunions() {
+  const [pfe, setPfe] = useState<Pfe | null>(null);
+  const [meetings, setMeetings] = useState<MeetingDTO[]>([]);
+  const [chargement, setChargement] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [newMeeting, setNewMeeting] = useState({
     title: '',
     date: '',
     time: '',
-    duration: '45min',
+    duration: 45,
     agenda: '',
   });
 
-  const meetings: Meeting[] = [
-    {
-      id: 1,
-      title: 'Bilan Conception',
-      date: '2025-01-22',
-      time: '10:00',
-      duration: '45 min',
-      status: 'Confirmée',
-      agenda: [
-        'Revue du diagramme de classes',
-        'Discussion sur l\'architecture',
-        'Prochaines étapes du développement',
-      ],
-      meetLink: 'https://meet.google.com/abc-defg-hij',
-    },
-    {
-      id: 2,
-      title: 'Point d\'avancement',
-      date: '2025-01-08',
-      time: '14:00',
-      duration: '30 min',
-      status: 'Confirmée',
-      compteRendu:
-        'Bonne progression sur la phase de conception. Le diagramme de classes nécessite quelques ajustements. Prochaine réunion prévue pour valider l\'architecture globale.',
-    },
-  ];
+  const charger = (currentPfe: Pfe) => {
+    meetingService
+      .getMeetingsForPfe(currentPfe.id)
+      .then((page) => setMeetings(page.content))
+      .catch(() => toast.error('Impossible de charger les réunions'));
+  };
 
-  const handleCreateMeeting = () => {
-    if (newMeeting.title && newMeeting.date && newMeeting.time) {
-      toast.success('Demande de réunion envoyée à Dr. Trabelsi — lien Meet généré');
+  useEffect(() => {
+    module2Api
+      .getMyPfes()
+      .then((pfes) => {
+        if (pfes.length === 0) {
+          setChargement(false);
+          return;
+        }
+        setPfe(pfes[0]);
+        charger(pfes[0]);
+      })
+      .finally(() => setChargement(false));
+  }, []);
+
+  const handleCreateMeeting = async () => {
+    if (!pfe?.supervisorId || !newMeeting.title || !newMeeting.date || !newMeeting.time) {
+      toast.error('Merci de remplir tous les champs obligatoires');
+      return;
+    }
+
+    try {
+      await meetingService.createMeeting({
+        pfeId: pfe.id,
+        participantId: pfe.supervisorId,
+        title: newMeeting.title,
+        description: newMeeting.agenda,
+        meetingDate: new Date(`${newMeeting.date}T${newMeeting.time}`).toISOString(),
+        duration: newMeeting.duration,
+      });
+      toast.success('Demande de réunion envoyée à votre encadrant');
       setShowCreateModal(false);
-      setNewMeeting({ title: '', date: '', time: '', duration: '45min', agenda: '' });
+      setNewMeeting({ title: '', date: '', time: '', duration: 45, agenda: '' });
+      charger(pfe);
+    } catch {
+      toast.error('Échec de la demande de réunion');
     }
   };
 
-  const upcomingMeetings = meetings.filter((m) => new Date(m.date) >= new Date());
-  const pastMeetings = meetings.filter((m) => new Date(m.date) < new Date());
+  const statusLabel: Record<string, string> = {
+    PENDING: 'En attente',
+    ACCEPTED: 'Confirmée',
+    REFUSED: 'Refusée',
+    CANCELLED: 'Annulée',
+    COMPLETED: 'Terminée',
+  };
+
+  const statusClass: Record<string, string> = {
+    PENDING: 'bg-amber-100 text-amber-700',
+    ACCEPTED: 'bg-green-100 text-green-700',
+    REFUSED: 'bg-red-100 text-red-700',
+    CANCELLED: 'bg-gray-100 text-gray-700',
+    COMPLETED: 'bg-blue-100 text-blue-700',
+  };
+
+  if (chargement) {
+    return <p className="text-gray-600">Chargement...</p>;
+  }
+
+  if (!pfe) {
+    return (
+      <div className="bg-white rounded-lg p-6 border border-gray-200 text-center text-gray-600">
+        Aucun PFE trouvé pour le moment.
+      </div>
+    );
+  }
+
+  const upcomingMeetings = meetings.filter((m) => new Date(m.meetingDate) >= new Date());
+  const pastMeetings = meetings.filter((m) => new Date(m.meetingDate) < new Date());
 
   return (
     <div className="space-y-6">
@@ -68,42 +100,20 @@ export function EtudiantReunions() {
         <h2 className="text-xl font-semibold">Réunions</h2>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="px-4 py-2 bg-[#1F4E79] text-white rounded-lg hover:bg-[#163A5C]"
+          disabled={!pfe.supervisorId}
+          className="px-4 py-2 bg-[#1F4E79] text-white rounded-lg hover:bg-[#163A5C] disabled:opacity-50"
         >
           Proposer une réunion
         </button>
       </div>
 
-      <div className="bg-white rounded-lg p-6 border border-gray-200">
-        <h3 className="font-semibold mb-4">Janvier 2025</h3>
-        <div className="grid grid-cols-7 gap-2">
-          {['Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di'].map((day) => (
-            <div key={day} className="text-center text-sm font-medium text-gray-600 py-2">
-              {day}
-            </div>
-          ))}
-          {Array.from({ length: 35 }, (_, i) => {
-            const day = i - 2;
-            const hasMeeting = day === 8 || day === 22;
-            return (
-              <div
-                key={i}
-                className={`text-center py-3 rounded ${
-                  day > 0 && day <= 31
-                    ? hasMeeting
-                      ? 'bg-[#1F4E79] text-white font-semibold cursor-pointer'
-                      : 'hover:bg-gray-100 cursor-pointer'
-                    : 'text-gray-300'
-                }`}
-              >
-                {day > 0 && day <= 31 ? day : ''}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
       <div className="space-y-4">
+        {upcomingMeetings.length === 0 && pastMeetings.length === 0 && (
+          <div className="bg-white rounded-lg p-6 border border-gray-200 text-center text-gray-500">
+            Aucune réunion pour le moment.
+          </div>
+        )}
+
         {upcomingMeetings.map((meeting) => (
           <div key={meeting.id} className="bg-white rounded-lg p-6 border border-gray-200">
             <div className="flex items-start justify-between mb-4">
@@ -112,7 +122,7 @@ export function EtudiantReunions() {
                 <div className="flex items-center gap-4 text-sm text-gray-600">
                   <div className="flex items-center gap-1">
                     <Calendar size={16} />
-                    {new Date(meeting.date).toLocaleDateString('fr-FR', {
+                    {new Date(meeting.meetingDate).toLocaleDateString('fr-FR', {
                       day: 'numeric',
                       month: 'long',
                       year: 'numeric',
@@ -120,35 +130,35 @@ export function EtudiantReunions() {
                   </div>
                   <div className="flex items-center gap-1">
                     <Clock size={16} />
-                    {meeting.time} · {meeting.duration}
+                    {new Date(meeting.meetingDate).toLocaleTimeString('fr-FR', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                    {meeting.duration ? ` · ${meeting.duration} min` : ''}
                   </div>
                 </div>
               </div>
-              <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
-                {meeting.status}
+              <span className={`px-3 py-1 rounded-full text-sm ${statusClass[meeting.status]}`}>
+                {statusLabel[meeting.status]}
               </span>
             </div>
 
-            {meeting.meetLink && (
+            {meeting.meetingLink && (
               <a
-                href={meeting.meetLink}
+                href={meeting.meetingLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 mb-4"
               >
                 <Video size={18} />
-                Rejoindre Google Meet
+                Rejoindre la réunion
               </a>
             )}
 
-            {meeting.agenda && (
+            {meeting.description && (
               <div>
-                <h4 className="font-medium mb-2">Ordre du jour:</h4>
-                <ul className="list-disc list-inside space-y-1 text-sm text-gray-700">
-                  {meeting.agenda.map((item, i) => (
-                    <li key={i}>{item}</li>
-                  ))}
-                </ul>
+                <h4 className="font-medium mb-2">Ordre du jour :</h4>
+                <p className="text-sm text-gray-700">{meeting.description}</p>
               </div>
             )}
           </div>
@@ -162,7 +172,7 @@ export function EtudiantReunions() {
                 <div className="flex items-center gap-4 text-sm text-gray-600">
                   <div className="flex items-center gap-1">
                     <Calendar size={16} />
-                    {new Date(meeting.date).toLocaleDateString('fr-FR', {
+                    {new Date(meeting.meetingDate).toLocaleDateString('fr-FR', {
                       day: 'numeric',
                       month: 'long',
                       year: 'numeric',
@@ -170,19 +180,17 @@ export function EtudiantReunions() {
                   </div>
                 </div>
               </div>
+              <span className={`px-3 py-1 rounded-full text-sm ${statusClass[meeting.status]}`}>
+                {statusLabel[meeting.status]}
+              </span>
             </div>
 
-            {meeting.compteRendu && (
+            {meeting.report && (
               <div className="bg-white p-4 rounded-lg mb-3">
-                <h4 className="font-medium mb-2">Compte-rendu:</h4>
-                <p className="text-sm text-gray-700">{meeting.compteRendu}</p>
+                <h4 className="font-medium mb-2">Compte-rendu :</h4>
+                <p className="text-sm text-gray-700">{meeting.report}</p>
               </div>
             )}
-
-            <button className="flex items-center gap-2 text-sm text-[#1F4E79] hover:underline">
-              <Download size={16} />
-              Télécharger compte-rendu
-            </button>
           </div>
         ))}
       </div>
@@ -222,16 +230,16 @@ export function EtudiantReunions() {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">Durée</label>
+                <label className="block text-sm font-medium mb-1">Durée (minutes)</label>
                 <select
                   value={newMeeting.duration}
-                  onChange={(e) => setNewMeeting({ ...newMeeting, duration: e.target.value })}
+                  onChange={(e) => setNewMeeting({ ...newMeeting, duration: Number(e.target.value) })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg"
                 >
-                  <option>30min</option>
-                  <option>45min</option>
-                  <option>1h</option>
-                  <option>1h30</option>
+                  <option value={30}>30 min</option>
+                  <option value={45}>45 min</option>
+                  <option value={60}>1h</option>
+                  <option value={90}>1h30</option>
                 </select>
               </div>
               <div>
@@ -245,7 +253,7 @@ export function EtudiantReunions() {
               </div>
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <p className="text-sm text-blue-800">
-                  Un lien Google Meet sera généré automatiquement
+                  Un lien Google Meet sera généré automatiquement si votre encadrant a autorisé l'intégration.
                 </p>
               </div>
             </div>

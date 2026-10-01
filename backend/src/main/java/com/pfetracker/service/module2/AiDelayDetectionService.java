@@ -16,6 +16,7 @@ import com.pfetracker.repository.module2.PfeRepository;
 import com.pfetracker.repository.module2.SprintRepository;
 import com.pfetracker.repository.module2.Module2TaskRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -44,11 +45,15 @@ public class AiDelayDetectionService {
     private final SprintRepository sprintRepository;
     private final AiAlertRepository aiAlertRepository;
 
+    // MODIF : seuil de stagnation configurable (cahier des charges §5.7.1 : 7 jours par défaut)
+    @Value("${pfe.stagnation.seuil-jours:7}")
+    private int seuilStagnationJours;
+
     /**
-     * Exécution toutes les 10 minutes.
-     * Pour une vraie production, tu peux changer vers une exécution quotidienne.
+     * Exécution chaque nuit à 2h00 (cahier des charges §5.7 : "s'exécute
+     * automatiquement chaque nuit à 2h00 du matin").
      */
-    @Scheduled(fixedRate = 600000)
+    @Scheduled(cron = "0 0 2 * * *")
     public void runDetection() {
         detectLateTasks();
         detectLateMilestones();
@@ -150,7 +155,7 @@ public class AiDelayDetectionService {
 
             List<Task> recentTasks = taskRepository.findByMilestonePfeIdAndUpdatedAtAfter(
                     pfe.getId(),
-                    LocalDateTime.now().minusDays(14)
+                    LocalDateTime.now().minusDays(seuilStagnationJours)
             );
 
             if (recentTasks.isEmpty() && realProgress < 100.0) {
@@ -160,7 +165,7 @@ public class AiDelayDetectionService {
                         pfe.getSupervisorId(),
                         AlertType.STUDENT_STAGNATION,
                         AlertSeverity.WARNING,
-                        "Aucune activité récente détectée sur ce PFE depuis 14 jours.",
+                        "Aucune activité récente détectée sur ce PFE depuis " + seuilStagnationJours + " jours.",
                         "PFE",
                         pfe.getId()
                 );

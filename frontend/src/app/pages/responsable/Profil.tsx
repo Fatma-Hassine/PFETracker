@@ -6,13 +6,14 @@ type Profil = {
   nomComplet?: string;
   email?: string;
   role?: string;
+  departementNom?: string;
 };
 
 export function ResponsableProfil() {
   const [profil, setProfil] = useState<Profil | null>(null);
 
   useEffect(() => {
-    apiRequest<Profil>("/api/utilisateurs/moi").then(setProfil).catch(console.error);
+    apiRequest<Profil>("/utilisateurs/moi").then(setProfil).catch(console.error);
   }, []);
 
   if (!profil) return <p>Chargement...</p>;
@@ -23,6 +24,7 @@ export function ResponsableProfil() {
       <p><strong>Nom :</strong> {profil.nomComplet}</p>
       <p><strong>Email :</strong> {profil.email}</p>
       <p><strong>Rôle :</strong> {profil.role}</p>
+      <p><strong>Département :</strong> {profil.departementNom || "—"}</p>
     </div>
   );
 }

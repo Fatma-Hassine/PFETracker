@@ -7,7 +7,7 @@ export function ForgotPasswordPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    await apiRequest<void>("/api/auth/mot-de-passe-oublie", {
+    await apiRequest<void>("/auth/mot-de-passe-oublie", {
       method: "POST",
       body: JSON.stringify({ email }),
     });

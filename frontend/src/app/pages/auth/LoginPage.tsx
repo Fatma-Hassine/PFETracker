@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiRequest } from "../../../services/api";
+import { useRole } from "../../contexts/RoleContext";
 
 type AuthResponse = {
   accessToken?: string;
@@ -16,6 +17,7 @@ export function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+  const { login: setRoleContext } = useRole();
 
   const login = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -49,6 +51,10 @@ export function LoginPage() {
         return;
       }
 
+      if (data.role) {
+        setRoleContext(data.role);
+      }
+
       switch (data.role) {
         case "ROLE_ADMIN":
           navigate("/admin/dashboard");
@@ -70,8 +76,11 @@ export function LoginPage() {
           navigate("/service-stages/dashboard");
           break;
 
-        case "ROLE_DEPT_MANAGER":
-        case "ROLE_RESPONSABLE":
+        // MODIF : le vrai nom de l'enum backend est ROLE_CHEF_DEPARTEMENT —
+        // ROLE_DEPT_MANAGER/ROLE_RESPONSABLE ne correspondaient à rien,
+        // donc un chef de département atterrissait sur /auth/login après
+        // une connexion pourtant réussie.
+        case "ROLE_CHEF_DEPARTEMENT":
           navigate("/responsable/dashboard");
           break;
 
@@ -131,6 +140,23 @@ export function LoginPage() {
         >
           {loading ? "Connexion..." : "Se connecter"}
         </button>
+     <div className="text-center">
+          
+        </div>
+
+        <div className="text-center pt-4 border-t border-gray-200">
+          <p className="text-sm text-gray-600">
+            Pas de compte ?{' '}
+            <button
+              type="button"
+              onClick={() => navigate('/auth/register')}
+              className="text-[#1F4E79] hover:underline"
+            >
+              Créer un compte
+            </button>
+          </p>
+        </div>
+        
       </form>
     </div>
   );

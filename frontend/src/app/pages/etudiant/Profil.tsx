@@ -1,17 +1,24 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Lock, Camera } from 'lucide-react';
 import { toast } from 'sonner';
+import { apiRequest } from '../../../services/api';
+
+type ProfilEtudiant = {
+  id: number;
+  nomComplet: string;
+  email: string;
+  telephone?: string;
+  departementNom?: string;
+  niveauEtudes?: string;
+  encadrantId?: number;
+  encadrantNom?: string;
+};
 
 export function EtudiantProfil() {
   const [isEditing, setIsEditing] = useState(false);
-  const [profile, setProfile] = useState({
-    nom: 'Ben Salem',
-    prenom: 'Ahmed',
-    telephone: '+216 20 123 456',
-    email: 'ahmed.bensalem@univ.tn',
-    departement: 'Génie Informatique',
-    niveau: 'Master 2',
-  });
+  const [chargement, setChargement] = useState(true);
+  const [profile, setProfile] = useState<ProfilEtudiant | null>(null);
+  const [brouillon, setBrouillon] = useState({ nomComplet: '', telephone: '' });
 
   const [passwords, setPasswords] = useState({
     current: '',
@@ -19,19 +26,71 @@ export function EtudiantProfil() {
     confirm: '',
   });
 
-  const handleSave = () => {
-    setIsEditing(false);
-    toast.success('Profil mis à jour avec succès');
+  const charger = () => {
+    apiRequest<ProfilEtudiant>('/utilisateurs/moi')
+      .then((p) => {
+        setProfile(p);
+        setBrouillon({ nomComplet: p.nomComplet, telephone: p.telephone || '' });
+      })
+      .catch(() => toast.error('Impossible de charger le profil'))
+      .finally(() => setChargement(false));
   };
 
-  const handleChangePassword = () => {
-    if (passwords.new === passwords.confirm) {
-      toast.success('Mot de passe changé avec succès');
-      setPasswords({ current: '', new: '', confirm: '' });
-    } else {
-      toast.error('Les mots de passe ne correspondent pas');
+  useEffect(() => {
+    charger();
+  }, []);
+
+  const handleSave = async () => {
+    try {
+      await apiRequest<void>('/utilisateurs/moi', {
+        method: 'PUT',
+        body: JSON.stringify({
+          nomComplet: brouillon.nomComplet,
+          telephone: brouillon.telephone,
+        }),
+      });
+      setIsEditing(false);
+      toast.success('Profil mis à jour avec succès');
+      charger();
+    } catch {
+      toast.error('Échec de la mise à jour du profil');
     }
   };
+
+  const handleChangePassword = async () => {
+    if (passwords.new !== passwords.confirm) {
+      toast.error('Les mots de passe ne correspondent pas');
+      return;
+    }
+    try {
+      await apiRequest<void>('/auth/changer-mot-de-passe', {
+        method: 'POST',
+        body: JSON.stringify({
+          ancienMotDePasse: passwords.current,
+          nouveauMotDePasse: passwords.new,
+        }),
+      });
+      toast.success('Mot de passe changé avec succès');
+      setPasswords({ current: '', new: '', confirm: '' });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Échec du changement de mot de passe');
+    }
+  };
+
+  if (chargement) {
+    return <p className="text-gray-600">Chargement du profil...</p>;
+  }
+
+  if (!profile) {
+    return <p className="text-red-600">Impossible de charger le profil.</p>;
+  }
+
+  const initiales = profile.nomComplet
+    .split(' ')
+    .map((m) => m[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <div className="space-y-6">
@@ -39,17 +98,15 @@ export function EtudiantProfil() {
         <div className="flex items-start gap-6 mb-6">
           <div className="relative">
             <div className="w-24 h-24 rounded-full bg-[#1F4E79] flex items-center justify-center text-white text-3xl">
-              AS
+              {initiales}
             </div>
             <button className="absolute bottom-0 right-0 w-8 h-8 bg-white border border-gray-300 rounded-full flex items-center justify-center hover:bg-gray-50">
               <Camera size={16} />
             </button>
           </div>
           <div className="flex-1">
-            <h2 className="text-2xl font-bold mb-2">
-              {profile.prenom} {profile.nom}
-            </h2>
-            <p className="text-gray-600">{profile.niveau}</p>
+            <h2 className="text-2xl font-bold mb-2">{profile.nomComplet}</h2>
+            <p className="text-gray-600">{profile.niveauEtudes || 'Niveau non renseigné'}</p>
           </div>
           {!isEditing ? (
             <button
@@ -61,7 +118,10 @@ export function EtudiantProfil() {
           ) : (
             <div className="flex gap-2">
               <button
-                onClick={() => setIsEditing(false)}
+                onClick={() => {
+                  setIsEditing(false);
+                  setBrouillon({ nomComplet: profile.nomComplet, telephone: profile.telephone || '' });
+                }}
                 className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
               >
                 Annuler
@@ -78,29 +138,16 @@ export function EtudiantProfil() {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Nom</label>
+            <label className="block text-sm font-medium text-gray-600 mb-1">Nom complet</label>
             {isEditing ? (
               <input
                 type="text"
-                value={profile.nom}
-                onChange={(e) => setProfile({ ...profile, nom: e.target.value })}
+                value={brouillon.nomComplet}
+                onChange={(e) => setBrouillon({ ...brouillon, nomComplet: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
             ) : (
-              <p className="text-gray-800">{profile.nom}</p>
-            )}
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1">Prénom</label>
-            {isEditing ? (
-              <input
-                type="text"
-                value={profile.prenom}
-                onChange={(e) => setProfile({ ...profile, prenom: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              />
-            ) : (
-              <p className="text-gray-800">{profile.prenom}</p>
+              <p className="text-gray-800">{profile.nomComplet}</p>
             )}
           </div>
           <div>
@@ -108,12 +155,12 @@ export function EtudiantProfil() {
             {isEditing ? (
               <input
                 type="text"
-                value={profile.telephone}
-                onChange={(e) => setProfile({ ...profile, telephone: e.target.value })}
+                value={brouillon.telephone}
+                onChange={(e) => setBrouillon({ ...brouillon, telephone: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg"
               />
             ) : (
-              <p className="text-gray-800">{profile.telephone}</p>
+              <p className="text-gray-800">{profile.telephone || '—'}</p>
             )}
           </div>
           <div>
@@ -128,34 +175,32 @@ export function EtudiantProfil() {
               Département
               <Lock size={14} className="text-gray-400" />
             </label>
-            <p className="text-gray-800">{profile.departement}</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-600 mb-1 flex items-center gap-2">
-              Niveau
-              <Lock size={14} className="text-gray-400" />
-            </label>
-            <p className="text-gray-800">{profile.niveau}</p>
+            <p className="text-gray-800">{profile.departementNom || '—'}</p>
           </div>
         </div>
       </div>
 
       <div className="bg-white rounded-lg p-6 border border-gray-200">
         <h3 className="text-lg font-semibold mb-4">Encadrant</h3>
-        <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
-          <div className="w-16 h-16 rounded-full bg-[#1F4E79] flex items-center justify-center text-white text-xl">
-            ST
+        {profile.encadrantNom ? (
+          <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+            <div className="w-16 h-16 rounded-full bg-[#1F4E79] flex items-center justify-center text-white text-xl">
+              {profile.encadrantNom
+                .split(' ')
+                .map((m) => m[0])
+                .join('')
+                .slice(0, 2)
+                .toUpperCase()}
+            </div>
+            <div className="flex-1">
+              <h4 className="font-medium">{profile.encadrantNom}</h4>
+            </div>
           </div>
-          <div className="flex-1">
-            <h4 className="font-medium">Dr. Sonia Trabelsi</h4>
-            <p className="text-sm text-gray-600">Professeure, Génie Logiciel</p>
-            <p className="text-xs text-gray-500 mt-1">Affecté le 02/10/2024</p>
-          </div>
-          <div className="text-right">
-            <p className="text-sm text-gray-600 mb-1">Code ENC</p>
-            <p className="font-mono text-lg font-semibold blur-sm select-none">ENC-A7X3K</p>
-          </div>
-        </div>
+        ) : (
+          <p className="text-gray-500 text-sm">
+            Aucun encadrant affecté pour le moment — en attente de validation par le chef de département.
+          </p>
+        )}
       </div>
 
       <div className="bg-white rounded-lg p-6 border border-gray-200">

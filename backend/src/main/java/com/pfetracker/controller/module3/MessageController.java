@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v3/messages")
+@RequestMapping("/v3/messages")
 @RequiredArgsConstructor
 @Tag(name = "Messagerie", description = "Gestion des messages privés entre étudiant et encadrant")
 @SecurityRequirement(name = "bearerAuth")

@@ -12,7 +12,7 @@ import com.pfetracker.service.module1.*;
 import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
-import com.pfetracker.dto.*;
+
 
 @RestController("utilisateurControllerM1")
 @RequestMapping("/utilisateurs")
@@ -28,7 +28,7 @@ public class UtilisateurController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ROLE_DEPT_MANAGER','ROLE_DIRECTOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_CHEF_DEPARTEMENT','ROLE_DIRECTEUR')")
     public ResponseEntity<UtilisateurResponse> getById(@PathVariable Long id) {
         return ResponseEntity.ok(utilisateurService.getById(id));
     }

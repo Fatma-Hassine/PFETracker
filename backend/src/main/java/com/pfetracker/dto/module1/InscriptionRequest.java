@@ -18,5 +18,8 @@ public class InscriptionRequest {
     private String nomComplet;
 
     @NotNull(message = "Le rôle est obligatoire")
-    private Role role; 
+    private Role role;
+
+    @NotNull(message = "Le département est obligatoire")
+    private Long departementId;
 }

@@ -79,10 +79,10 @@ const meetingService = {
     return res.data.data;
   },
 
-  getUpcomingMeetings: async (page = 0, size = 20) => {
-    const res = await axiosInstance.get<ApiResponse<PageResponse<MeetingDTO>>>(
-      `/meetings/upcoming?page=${page}&size=${size}`
-    );
+  getUpcomingMeetings: async () => {
+    // MODIF : le backend renvoie une liste simple (MeetingController#getUpcomingMeetings
+    // -> List<MeetingDTO>), pas une page — pas de pagination sur cet endpoint.
+    const res = await axiosInstance.get<ApiResponse<MeetingDTO[]>>('/meetings/upcoming');
     return res.data.data;
   },
 

@@ -13,11 +13,11 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class CreateCommentRequest {
-    @NotNull(message = "L'ID de la tÃ¢che est obligatoire")
+    @NotNull(message = "L'ID de la tâche est obligatoire")
     private Long taskId;
 
     @NotBlank(message = "Le contenu est obligatoire")
-    @Size(max = 2000, message = "Le contenu ne doit pas dÃ©passer 2000 caractÃ¨res")
+    @Size(max = 2000, message = "Le contenu ne doit pas dépasser 2000 caractères")
     private String content;
 
     private List<Long> mentionedUserIds;

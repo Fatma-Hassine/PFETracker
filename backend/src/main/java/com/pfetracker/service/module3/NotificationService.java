@@ -3,16 +3,16 @@ package com.pfetracker.service.module3;
 import com.pfetracker.dto.module3.MessageDTO;
 import com.pfetracker.dto.module3.NotificationDTO;
 import com.pfetracker.dto.module3.PageResponse;
+import com.pfetracker.entity.module2.Pfe;
+import com.pfetracker.entity.module2.Task;
 import com.pfetracker.entity.module3.Comment;
 import com.pfetracker.entity.module3.Meeting;
 import com.pfetracker.entity.module3.NotificationM3;
-import com.pfetracker.entity.module3.PFE;
-import com.pfetracker.entity.module3.Task;
 import com.pfetracker.exception.module3.ResourceNotFoundException;
 import com.pfetracker.exception.module3.UnauthorizedException;
 import com.pfetracker.mapper.module3.NotificationMapper;
+import com.pfetracker.repository.module1.UtilisateurRepository;
 import com.pfetracker.repository.module3.NotificationRepositoryM3;
-import com.pfetracker.repository.module3.UserRepository;
 import com.pfetracker.websocket.module3.NotificationWebSocketController;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +36,7 @@ public class NotificationService {
     private final NotificationRepositoryM3 notificationRepository;
     private final NotificationMapper notificationMapper;
     private final NotificationWebSocketController webSocketController;
-    private final UserRepository userRepository;
+    private final UtilisateurRepository userRepository;
     private final EmailService emailService;
 
     public NotificationDTO createNotification(Long userId, String message, NotificationM3.NotificationType type,
@@ -67,25 +67,25 @@ public class NotificationService {
     }
 
     public void createCommentNotification(Long userId, Comment comment, Task task) {
-        String msg = "Nouveau commentaire sur la tÃ¢che: " + task.getTitle();
+        String msg = "Nouveau commentaire sur la tâche: " + task.getTitle();
         createNotification(userId, msg, NotificationM3.NotificationType.TASK,
                 comment.getId(), "COMMENT", "/tasks/" + task.getId() + "/comments");
     }
 
-    public void createMentionNotification(Long userId, Comment comment, PFE pfe) {
-        String msg = "Vous avez Ã©tÃ© mentionnÃ© dans un commentaire";
+    public void createMentionNotification(Long userId, Comment comment, Pfe pfe) {
+        String msg = "Vous avez été mentionné dans un commentaire";
         createNotification(userId, msg, NotificationM3.NotificationType.TASK,
                 comment.getId(), "COMMENT", "/tasks/" + comment.getTaskId() + "/comments");
     }
 
     public void createMeetingNotification(Long userId, Meeting meeting, String action) {
         String msg = switch (action) {
-            case "CREATED" -> "Nouvelle rÃ©union planifiÃ©e: " + meeting.getTitle();
-            case "UPDATED" -> "RÃ©union modifiÃ©e: " + meeting.getTitle();
-            case "CANCELLED" -> "RÃ©union annulÃ©e: " + meeting.getTitle();
-            case "REMINDER_24H" -> "Rappel: RÃ©union dans 24h - " + meeting.getTitle();
-            case "REMINDER_15MIN" -> "Rappel: RÃ©union dans 15 min - " + meeting.getTitle();
-            default -> "Mise Ã  jour de rÃ©union: " + meeting.getTitle();
+            case "CREATED" -> "Nouvelle réunion planifiée: " + meeting.getTitle();
+            case "UPDATED" -> "Réunion modifiée: " + meeting.getTitle();
+            case "CANCELLED" -> "Réunion annulée: " + meeting.getTitle();
+            case "REMINDER_24H" -> "Rappel: Réunion dans 24h - " + meeting.getTitle();
+            case "REMINDER_15MIN" -> "Rappel: Réunion dans 15 min - " + meeting.getTitle();
+            default -> "Mise à jour de réunion: " + meeting.getTitle();
         };
 
         NotificationM3.NotificationType type = action.contains("REMINDER") 
@@ -97,11 +97,11 @@ public class NotificationService {
 
     public void createTaskNotification(Long userId, Task task, String action) {
         String msg = switch (action) {
-            case "ASSIGNED" -> "Nouvelle tÃ¢che assignÃ©e: " + task.getTitle();
-            case "SUBMITTED" -> "TÃ¢che soumise pour rÃ©vision: " + task.getTitle();
-            case "VALIDATED" -> "TÃ¢che validÃ©e: " + task.getTitle();
-            case "TO_CORRECT" -> "Corrections demandÃ©es: " + task.getTitle();
-            default -> "Mise Ã  jour de tÃ¢che: " + task.getTitle();
+            case "ASSIGNED" -> "Nouvelle tâche assignée: " + task.getTitle();
+            case "SUBMITTED" -> "Tâche soumise pour révision: " + task.getTitle();
+            case "VALIDATED" -> "Tâche validée: " + task.getTitle();
+            case "TO_CORRECT" -> "Corrections demandées: " + task.getTitle();
+            default -> "Mise à jour de tâche: " + task.getTitle();
         };
 
         createNotification(userId, msg, NotificationM3.NotificationType.TASK,
@@ -161,17 +161,17 @@ public class NotificationService {
 
     @Async("emailExecutor")
     public void sendMeetingReminderEmail(Long userId, Meeting meeting, int hoursBefore) {
-        String subject = "Rappel de rÃ©union - " + meeting.getTitle();
+        String subject = "Rappel de réunion - " + meeting.getTitle();
         String body = String.format(
             "Bonjour,%n%n" +
-            "Rappel: Vous avez une rÃ©union dans %d heures.%n%n" +
+            "Rappel: Vous avez une réunion dans %d heures.%n%n" +
             "Titre: %s%n" +
             "Date: %s%n" +
-            "DurÃ©e: %d minutes%n" +
+            "Durée: %d minutes%n" +
             "Lien: %s%n%n" +
             "Cordialement,%nPFETracker",
             hoursBefore, meeting.getTitle(), meeting.getMeetingDate(), 
-            meeting.getDuration(), meeting.getMeetingLink() != null ? meeting.getMeetingLink() : "Non spÃ©cifiÃ©"
+            meeting.getDuration(), meeting.getMeetingLink() != null ? meeting.getMeetingLink() : "Non spécifié"
         );
         sendEmailNotification(userId, subject, body);
     }
@@ -193,12 +193,12 @@ public class NotificationService {
     @Transactional(readOnly = true)
     public List<NotificationDTO> getNotificationCenter(Long userId, int limit) {
         Pageable pageable = PageRequest.of(0, limit, Sort.by("createdAt").descending());
-        Page<Notification> notifications = notificationRepository.findByUserId(userId, pageable);
+        Page<NotificationM3> notifications = notificationRepository.findByUserId(userId, pageable);
         return notificationMapper.toDTOList(notifications.getContent());
     }
 
     public NotificationDTO markAsReadByAction(Long notificationId, Long userId) {
-        Notification notification = notificationRepository.findById(notificationId)
+        NotificationM3 notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification non trouvée"));
 
         if (!notification.getUserId().equals(userId)) {
@@ -207,13 +207,13 @@ public class NotificationService {
 
         notification.setIsRead(true);
         notification.setReadAt(LocalDateTime.now());
-        Notification updated = notificationRepository.save(notification);
+        NotificationM3 updated = notificationRepository.save(notification);
         log.info("Notification {} marked as read by action from user {}", notificationId, userId);
         return notificationMapper.toDTO(updated);
     }
 
     public void deleteNotification(Long notificationId, Long userId) {
-        Notification notification = notificationRepository.findById(notificationId)
+        NotificationM3 notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification non trouvée"));
 
         if (!notification.getUserId().equals(userId)) {

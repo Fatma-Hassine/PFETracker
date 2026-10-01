@@ -3,6 +3,7 @@ import { ChevronDown, ChevronRight, Download, Loader2, PlusCircle } from 'lucide
 import { toast } from 'sonner';
 import { module2Api } from '../../api/module2Api';
 import { Milestone, Pfe, Task } from '../../types/module2.types';
+import { apiRequest } from '../../../services/api';
 
 interface MilestoneWithTasks extends Milestone {
   tasks: Task[];
@@ -44,17 +45,13 @@ function mapTaskStatus(status: string) {
   return 'Non commencé';
 }
 
-function getCurrentStudentId() {
-  const value = localStorage.getItem('demoUserId') || '1';
-  return Number(value);
-}
-
 export function EtudiantPFE() {
   const [expandedMilestone, setExpandedMilestone] = useState<number | null>(null);
   const [pfe, setPfe] = useState<Pfe | null>(null);
   const [milestones, setMilestones] = useState<MilestoneWithTasks[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
+  const [monId, setMonId] = useState<number | null>(null);
 
   const [form, setForm] = useState<ManualPfeForm>({
     studentName: '',
@@ -74,6 +71,7 @@ export function EtudiantPFE() {
 
   useEffect(() => {
     loadPfeData();
+    apiRequest<{ id: number }>('/utilisateurs/moi').then((u) => setMonId(u.id));
   }, []);
 
   const loadPfeData = async () => {
@@ -142,11 +140,16 @@ export function EtudiantPFE() {
       return;
     }
 
+    if (!monId) {
+      toast.error('Utilisateur non identifié — réessaie dans un instant');
+      return;
+    }
+
     setCreating(true);
 
     try {
       const createdPfe = await module2Api.createPfe({
-        studentId: getCurrentStudentId(),
+        studentId: monId,
         studentName: form.studentName,
         studentEmail: form.studentEmail,
         supervisorId,

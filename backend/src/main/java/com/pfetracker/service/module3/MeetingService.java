@@ -5,15 +5,15 @@ import com.pfetracker.dto.module3.MeetingDTO;
 import com.pfetracker.dto.module3.MeetingResponseRequest;
 import com.pfetracker.dto.module3.PageResponse;
 import com.pfetracker.dto.module3.UpdateMeetingRequest;
+import com.pfetracker.entity.module2.Pfe;
 import com.pfetracker.entity.module3.Meeting;
-import com.pfetracker.entity.module3.PFE;
 import com.pfetracker.exception.module3.BadRequestException;
 import com.pfetracker.exception.module3.ResourceNotFoundException;
 import com.pfetracker.exception.module3.UnauthorizedException;
 import com.pfetracker.mapper.module3.MeetingMapper;
+import com.pfetracker.repository.module1.UtilisateurRepository;
+import com.pfetracker.repository.module2.PfeRepository;
 import com.pfetracker.repository.module3.MeetingRepository;
-import com.pfetracker.repository.module3.PFERepository;
-import com.pfetracker.repository.module3.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -36,22 +36,22 @@ public class MeetingService {
 
     private final MeetingRepository meetingRepository;
     private final MeetingMapper meetingMapper;
-    private final PFERepository pfeRepository;
-    private final UserRepository userRepository;
+    private final PfeRepository pfeRepository;
+    private final UtilisateurRepository userRepository;
     private final NotificationService notificationService;
     private final GoogleCalendarService googleCalendarService;
 
     public MeetingDTO createMeeting(Long createdBy, CreateMeetingRequest request) {
-        PFE pfe = pfeRepository.findById(request.getPfeId())
-                .orElseThrow(() -> new ResourceNotFoundException("PFE non trouvÃ©"));
+        Pfe pfe = pfeRepository.findById(request.getPfeId())
+                .orElseThrow(() -> new ResourceNotFoundException("PFE non trouvé"));
 
         if (!isParticipantInPFE(createdBy, pfe)) {
-            throw new UnauthorizedException("Vous n'Ãªtes pas autorisÃ© Ã  crÃ©er une rÃ©union pour ce PFE");
+            throw new UnauthorizedException("Vous n'êtes pas autorisé à créer une réunion pour ce PFE");
         }
 
         if (!request.getParticipantId().equals(pfe.getStudentId()) && 
             !request.getParticipantId().equals(pfe.getSupervisorId())) {
-            throw new BadRequestException("Le participant doit Ãªtre l'Ã©tudiant ou l'encadrant du PFE");
+            throw new BadRequestException("Le participant doit être l'étudiant ou l'encadrant du PFE");
         }
 
         String meetingLink = request.getMeetingLink();
@@ -96,22 +96,22 @@ public class MeetingService {
 
         notificationService.createMeetingNotification(request.getParticipantId(), saved, "CREATED");
         notificationService.sendEmailNotification(request.getParticipantId(), 
-                "Nouvelle rÃ©union planifiÃ©e - " + saved.getTitle(),
-                buildMeetingEmailBody(saved, "Nouvelle rÃ©union"));
+                "Nouvelle réunion planifiée - " + saved.getTitle(),
+                buildMeetingEmailBody(saved, "Nouvelle réunion"));
 
         return enrichMeeting(meetingMapper.toDTO(saved));
     }
 
     public MeetingDTO respondToMeeting(Long meetingId, Long userId, MeetingResponseRequest request) {
         Meeting meeting = meetingRepository.findById(meetingId)
-                .orElseThrow(() -> new ResourceNotFoundException("RÃ©union non trouvÃ©e"));
+                .orElseThrow(() -> new ResourceNotFoundException("Réunion non trouvée"));
 
         if (!meeting.getParticipantId().equals(userId)) {
-            throw new UnauthorizedException("Vous n'Ãªtes pas le participant invitÃ© Ã  cette rÃ©union");
+            throw new UnauthorizedException("Vous n'êtes pas le participant invité à cette réunion");
         }
 
         if (meeting.getStatus() != Meeting.MeetingStatus.PENDING) {
-            throw new BadRequestException("Cette rÃ©union a dÃ©jÃ  Ã©tÃ© traitÃ©e");
+            throw new BadRequestException("Cette réunion a déjà été traitée");
         }
 
         meeting.setStatus(request.getStatus());
@@ -130,10 +130,10 @@ public class MeetingService {
 
     public MeetingDTO updateMeeting(Long meetingId, Long userId, UpdateMeetingRequest request) {
         Meeting meeting = meetingRepository.findById(meetingId)
-                .orElseThrow(() -> new ResourceNotFoundException("RÃ©union non trouvÃ©e"));
+                .orElseThrow(() -> new ResourceNotFoundException("Réunion non trouvée"));
 
         if (!meeting.getCreatedBy().equals(userId)) {
-            throw new UnauthorizedException("Seul le crÃ©ateur peut modifier cette rÃ©union");
+            throw new UnauthorizedException("Seul le créateur peut modifier cette réunion");
         }
 
         if (request.getTitle() != null) meeting.setTitle(request.getTitle());
@@ -159,10 +159,10 @@ public class MeetingService {
 
     public void deleteMeeting(Long meetingId, Long userId) {
         Meeting meeting = meetingRepository.findById(meetingId)
-                .orElseThrow(() -> new ResourceNotFoundException("RÃ©union non trouvÃ©e"));
+                .orElseThrow(() -> new ResourceNotFoundException("Réunion non trouvée"));
 
         if (!meeting.getCreatedBy().equals(userId)) {
-            throw new UnauthorizedException("Seul le crÃ©ateur peut supprimer cette rÃ©union");
+            throw new UnauthorizedException("Seul le créateur peut supprimer cette réunion");
         }
 
         meeting.setStatus(Meeting.MeetingStatus.CANCELLED);
@@ -177,17 +177,17 @@ public class MeetingService {
     @Transactional(readOnly = true)
     public MeetingDTO getMeetingById(Long meetingId, Long userId) {
         Meeting meeting = meetingRepository.findByIdAndParticipant(meetingId, userId)
-                .orElseThrow(() -> new ResourceNotFoundException("RÃ©union non trouvÃ©e ou accÃ¨s non autorisÃ©"));
+                .orElseThrow(() -> new ResourceNotFoundException("Réunion non trouvée ou accès non autorisé"));
         return enrichMeeting(meetingMapper.toDTO(meeting));
     }
 
     @Transactional(readOnly = true)
     public PageResponse<MeetingDTO> getMeetingsByPfe(Long pfeId, Long userId, int page, int size) {
-        PFE pfe = pfeRepository.findById(pfeId)
-                .orElseThrow(() -> new ResourceNotFoundException("PFE non trouvÃ©"));
+        Pfe pfe = pfeRepository.findById(pfeId)
+                .orElseThrow(() -> new ResourceNotFoundException("PFE non trouvé"));
 
         if (!isParticipantInPFE(userId, pfe)) {
-            throw new UnauthorizedException("AccÃ¨s non autorisÃ©");
+            throw new UnauthorizedException("Accès non autorisé");
         }
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("meetingDate").descending());
@@ -224,10 +224,10 @@ public class MeetingService {
 
     public MeetingDTO addReport(Long meetingId, Long userId, String report) {
         Meeting meeting = meetingRepository.findById(meetingId)
-                .orElseThrow(() -> new ResourceNotFoundException("RÃ©union non trouvÃ©e"));
+                .orElseThrow(() -> new ResourceNotFoundException("Réunion non trouvée"));
 
         if (!meeting.getCreatedBy().equals(userId) && !meeting.getParticipantId().equals(userId)) {
-            throw new UnauthorizedException("AccÃ¨s non autorisÃ©");
+            throw new UnauthorizedException("Accès non autorisé");
         }
 
         meeting.setReport(report);
@@ -243,16 +243,16 @@ public class MeetingService {
         return "https://meet.google.com/" + code;
     }
 
-    private boolean isParticipantInPFE(Long userId, PFE pfe) {
+    private boolean isParticipantInPFE(Long userId, Pfe pfe) {
         return pfe.getStudentId().equals(userId) ||
                (pfe.getSupervisorId() != null && pfe.getSupervisorId().equals(userId));
     }
 
     private MeetingDTO enrichMeeting(MeetingDTO dto) {
         userRepository.findById(dto.getCreatedBy())
-                .ifPresent(user -> dto.setCreatedByName(user.getFullName()));
+                .ifPresent(user -> dto.setCreatedByName(user.getNomComplet()));
         userRepository.findById(dto.getParticipantId())
-                .ifPresent(user -> dto.setParticipantName(user.getFullName()));
+                .ifPresent(user -> dto.setParticipantName(user.getNomComplet()));
         return dto;
     }
 
@@ -262,8 +262,8 @@ public class MeetingService {
             "%s%n%n" +
             "Titre: %s%n" +
             "Date: %s%n" +
-            "DurÃ©e: %d minutes%n" +
-            "Lien de rÃ©union: %s%n%n" +
+            "Durée: %d minutes%n" +
+            "Lien de réunion: %s%n%n" +
             "Cordialement,%nPFETracker",
             action, meeting.getTitle(), meeting.getMeetingDate(), 
             meeting.getDuration(), meeting.getMeetingLink()

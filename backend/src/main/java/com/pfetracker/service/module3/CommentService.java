@@ -3,17 +3,17 @@ package com.pfetracker.service.module3;
 import com.pfetracker.dto.module3.CommentDTO;
 import com.pfetracker.dto.module3.CreateCommentRequest;
 import com.pfetracker.dto.module3.PageResponse;
+import com.pfetracker.entity.module1.Utilisateur;
+import com.pfetracker.entity.module2.Pfe;
+import com.pfetracker.entity.module2.Task;
 import com.pfetracker.entity.module3.Comment;
-import com.pfetracker.entity.module3.PFE;
-import com.pfetracker.entity.module3.Task;
-import com.pfetracker.entity.module3.User;
 import com.pfetracker.exception.module3.ResourceNotFoundException;
 import com.pfetracker.exception.module3.UnauthorizedException;
 import com.pfetracker.mapper.module3.CommentMapper;
+import com.pfetracker.repository.module1.UtilisateurRepository;
+import com.pfetracker.repository.module2.Module2TaskRepository;
+import com.pfetracker.repository.module2.PfeRepository;
 import com.pfetracker.repository.module3.CommentRepository;
-import com.pfetracker.repository.module3.PFERepository;
-import com.pfetracker.repository.module3.TaskRepository;
-import com.pfetracker.repository.module3.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -34,20 +34,20 @@ public class CommentService {
 
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
-    private final TaskRepository taskRepository;
-    private final PFERepository pfeRepository;
-    private final UserRepository userRepository;
+    private final Module2TaskRepository taskRepository;
+    private final PfeRepository pfeRepository;
+    private final UtilisateurRepository userRepository;
     private final NotificationService notificationService;
 
     public CommentDTO addComment(Long userId, CreateCommentRequest request) {
         Task task = taskRepository.findById(request.getTaskId())
-                .orElseThrow(() -> new ResourceNotFoundException("TÃ¢che non trouvÃ©e: " + request.getTaskId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Tâche non trouvée: " + request.getTaskId()));
 
-        PFE pfe = pfeRepository.findById(task.getPfeId())
-                .orElseThrow(() -> new ResourceNotFoundException("PFE non trouvÃ©"));
+        Pfe pfe = pfeRepository.findById(task.getMilestone().getPfe().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("PFE non trouvé"));
 
         if (!isAuthorizedToComment(userId, pfe)) {
-            throw new UnauthorizedException("Vous n'Ãªtes pas autorisÃ© Ã  commenter cette tÃ¢che");
+            throw new UnauthorizedException("Vous n'êtes pas autorisé à commenter cette tâche");
         }
 
         Comment comment = Comment.builder()
@@ -71,13 +71,13 @@ public class CommentService {
     @Transactional(readOnly = true)
     public PageResponse<CommentDTO> getCommentsByTask(Long taskId, Long userId, int page, int size) {
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new ResourceNotFoundException("TÃ¢che non trouvÃ©e"));
+                .orElseThrow(() -> new ResourceNotFoundException("Tâche non trouvée"));
 
-        PFE pfe = pfeRepository.findById(task.getPfeId())
-                .orElseThrow(() -> new ResourceNotFoundException("PFE non trouvÃ©"));
+        Pfe pfe = pfeRepository.findById(task.getMilestone().getPfe().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("PFE non trouvé"));
 
         if (!isAuthorizedToComment(userId, pfe)) {
-            throw new UnauthorizedException("AccÃ¨s non autorisÃ©");
+            throw new UnauthorizedException("Accès non autorisé");
         }
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
@@ -101,13 +101,13 @@ public class CommentService {
     @Transactional(readOnly = true)
     public List<CommentDTO> getCommentsByTask(Long taskId, Long userId) {
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new ResourceNotFoundException("TÃ¢che non trouvÃ©e"));
+                .orElseThrow(() -> new ResourceNotFoundException("Tâche non trouvée"));
 
-        PFE pfe = pfeRepository.findById(task.getPfeId())
-                .orElseThrow(() -> new ResourceNotFoundException("PFE non trouvÃ©"));
+        Pfe pfe = pfeRepository.findById(task.getMilestone().getPfe().getId())
+                .orElseThrow(() -> new ResourceNotFoundException("PFE non trouvé"));
 
         if (!isAuthorizedToComment(userId, pfe)) {
-            throw new UnauthorizedException("AccÃ¨s non autorisÃ©");
+            throw new UnauthorizedException("Accès non autorisé");
         }
 
         return commentRepository.findRootCommentsByTaskId(taskId).stream()
@@ -120,12 +120,12 @@ public class CommentService {
         return commentRepository.countByTaskId(taskId);
     }
 
-    private boolean isAuthorizedToComment(Long userId, PFE pfe) {
+    private boolean isAuthorizedToComment(Long userId, Pfe pfe) {
         return pfe.getStudentId().equals(userId) ||
                (pfe.getSupervisorId() != null && pfe.getSupervisorId().equals(userId));
     }
 
-    private void notifyMentionedUsers(Comment comment, PFE pfe) {
+    private void notifyMentionedUsers(Comment comment, Pfe pfe) {
         if (comment.getMentionedUserIds() != null) {
             for (Long mentionedId : comment.getMentionedUserIds()) {
                 notificationService.createMentionNotification(mentionedId, comment, pfe);
@@ -133,8 +133,8 @@ public class CommentService {
         }
     }
 
-    private void notifyTaskParticipants(Comment comment, Task task, PFE pfe, Long commenterId) {
-        Long notifyUserId = commenterId.equals(task.getAssignedTo()) ? pfe.getSupervisorId() : task.getAssignedTo();
+    private void notifyTaskParticipants(Comment comment, Task task, Pfe pfe, Long commenterId) {
+        Long notifyUserId = commenterId.equals(task.getAssignedStudentId()) ? pfe.getSupervisorId() : task.getAssignedStudentId();
         if (notifyUserId != null && !notifyUserId.equals(commenterId)) {
             notificationService.createCommentNotification(notifyUserId, comment, task);
         }
@@ -143,13 +143,13 @@ public class CommentService {
     private CommentDTO enrichComment(CommentDTO dto) {
         userRepository.findById(dto.getUserId())
                 .ifPresent(user -> {
-                    dto.setUserName(user.getFullName());
+                    dto.setUserName(user.getNomComplet());
                 });
 
         if (dto.getMentionedUserIds() != null && !dto.getMentionedUserIds().isEmpty()) {
-            List<User> mentioned = userRepository.findByIds(dto.getMentionedUserIds());
+            List<Utilisateur> mentioned = userRepository.findByIdIn(dto.getMentionedUserIds());
             dto.setMentionedUserNames(mentioned.stream()
-                    .map(User::getFullName)
+                    .map(Utilisateur::getNomComplet)
                     .collect(Collectors.toList()));
         }
 

@@ -1,22 +1,33 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import authService, { AuthResponse } from '../../api/authService';
+import { apiRequest } from '../../services/api';
 
-export type Role = 'Étudiant' | 'Encadrant' | 'Responsable' | 'Directeur';
+export type Role = 'Étudiant' | 'Encadrant' | 'Responsable' | 'Directeur' | 'Admin' | 'ServiceStages';
 
-// Map backend roles to frontend roles
+// MODIF : ce mapping utilisait des noms qui ne correspondent à AUCUNE valeur
+// réelle de l'enum Role du backend (STUDENT/SUPERVISOR/DEPT_MANAGER/DIRECTOR
+// au lieu de ROLE_ETUDIANT/ROLE_ENCADRANT/ROLE_CHEF_DEPARTEMENT/ROLE_DIRECTEUR).
+// Résultat : la Sidebar affichait TOUJOURS le menu Étudiant, quel que soit le
+// rôle réellement connecté, pour tout le monde sauf les étudiants.
 const roleMap: Record<string, Role> = {
-  'STUDENT': 'Étudiant',
-  'SUPERVISOR': 'Encadrant',
-  'DEPT_MANAGER': 'Responsable',
-  'DIRECTOR': 'Directeur'
+  ROLE_ETUDIANT: 'Étudiant',
+  ROLE_ENCADRANT: 'Encadrant',
+  ROLE_CHEF_DEPARTEMENT: 'Responsable',
+  ROLE_DIRECTEUR: 'Directeur',
+  ROLE_ADMIN: 'Admin',
+  ROLE_SERVICE_STAGE: 'ServiceStages',
+};
+
+type Profil = {
+  id: number;
+  nomComplet: string;
+  email: string;
 };
 
 interface RoleContextType {
   role: Role;
-  setRole: (role: Role) => void;
   isAuthenticated: boolean;
-  user: AuthResponse | null;
-  login: (userData: AuthResponse) => void;
+  profil: Profil | null;
+  login: (backendRole: string) => void;
   logout: () => void;
   notificationCount: number;
   setNotificationCount: (count: number) => void;
@@ -27,44 +38,45 @@ const RoleContext = createContext<RoleContextType | undefined>(undefined);
 export function RoleProvider({ children }: { children: ReactNode }) {
   const [role, setRole] = useState<Role>('Étudiant');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<AuthResponse | null>(null);
-  const [notificationCount, setNotificationCount] = useState(3);
+  const [profil, setProfil] = useState<Profil | null>(null);
+  const [notificationCount, setNotificationCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
+  const chargerProfil = () => {
+    apiRequest<Profil>('/utilisateurs/moi')
+      .then(setProfil)
+      .catch(() => setProfil(null));
+  };
+
   useEffect(() => {
-    // Check initial auth state on mount
-    const checkAuth = () => {
-      try {
-        if (authService.isAuthenticated()) {
-          const currentUser = authService.getCurrentUser();
-          if (currentUser) {
-            setUser(currentUser);
-            setIsAuthenticated(true);
-            const mappedRole = roleMap[currentUser.role] || 'Étudiant';
-            setRole(mappedRole);
-          }
-        }
-      } catch (error) {
-        console.error('Failed to initialize auth state:', error);
-        authService.logout(); // Clear potentially corrupted data
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    checkAuth();
+    // MODIF : lit les mêmes clés localStorage que LoginPage.tsx écrit
+    // réellement (token / role) — l'ancien code attendait un objet "user"
+    // JSON jamais écrit par le vrai flux de connexion, donc le rôle restait
+    // toujours sur sa valeur par défaut.
+    const token = localStorage.getItem('token');
+    const backendRole = localStorage.getItem('role');
+
+    if (token && backendRole) {
+      setIsAuthenticated(true);
+      setRole(roleMap[backendRole] || 'Étudiant');
+      chargerProfil();
+    }
+
+    setIsLoading(false);
   }, []);
 
-  const login = (userData: AuthResponse) => {
-    setUser(userData);
+  const login = (backendRole: string) => {
     setIsAuthenticated(true);
-    const mappedRole = roleMap[userData.role] || 'Étudiant';
-    setRole(mappedRole);
+    setRole(roleMap[backendRole] || 'Étudiant');
+    chargerProfil();
   };
 
   const logout = () => {
-    authService.logout();
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('role');
     setIsAuthenticated(false);
-    setUser(null);
+    setProfil(null);
     setRole('Étudiant');
   };
 
@@ -83,9 +95,8 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     <RoleContext.Provider
       value={{
         role,
-        setRole,
         isAuthenticated,
-        user,
+        profil,
         login,
         logout,
         notificationCount,
@@ -103,4 +114,16 @@ export function useRole() {
     throw new Error('useRole must be used within RoleProvider');
   }
   return context;
+}
+
+/** Chemin de base des pages pour un rôle donné (utilisé par la Navbar/Sidebar). */
+export function baseRouteForRole(role: Role): string {
+  switch (role) {
+    case 'Étudiant': return '/etudiant';
+    case 'Encadrant': return '/encadrant';
+    case 'Responsable': return '/responsable';
+    case 'Directeur': return '/directeur';
+    case 'Admin': return '/admin';
+    case 'ServiceStages': return '/service-stages';
+  }
 }

@@ -4,6 +4,8 @@ import org.springframework.stereotype.Service;
 
 import com.pfetracker.dto.module1.ProfilUpdateRequest;
 import com.pfetracker.dto.module1.UtilisateurResponse;
+import com.pfetracker.entity.module1.Encadrant;
+import com.pfetracker.entity.module1.Etudiant;
 import com.pfetracker.entity.module1.Utilisateur;
 import com.pfetracker.exception.module1.BusinessException;
 import com.pfetracker.repository.module1.UtilisateurRepository;
@@ -38,6 +40,14 @@ public class UtilisateurServiceImpl implements UtilisateurService{
 
         // Email et département modifiables uniquement par l'admin — pas ici
         if (req.getNomComplet() != null) user.setNomComplet(req.getNomComplet());
+
+        if (user instanceof Etudiant e) {
+            if (req.getTelephone() != null) e.setTelephone(req.getTelephone());
+        } else if (user instanceof Encadrant enc) {
+            if (req.getGrade() != null) enc.setGrade(req.getGrade());
+            if (req.getSpecialite() != null) enc.setSpecialite(req.getSpecialite());
+            if (req.getBureau() != null) enc.setBureau(req.getBureau());
+        }
 
         utilisateurRepo.save(user);
         return UtilisateurResponse.fromEntity(user);

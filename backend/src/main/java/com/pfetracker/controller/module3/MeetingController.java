@@ -19,76 +19,76 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v3/meetings")
+@RequestMapping("/v3/meetings")
 @RequiredArgsConstructor
-@Tag(name = "RÃ©unions", description = "Planification et gestion des rÃ©unions synchrones")
+@Tag(name = "Réunions", description = "Planification et gestion des réunions synchrones")
 @SecurityRequirement(name = "bearerAuth")
 public class MeetingController {
 
     private final MeetingService meetingService;
 
     @PostMapping
-    @Operation(summary = "CrÃ©er une rÃ©union", description = "CrÃ©e une nouvelle rÃ©union avec gÃ©nÃ©ration automatique de lien Meet")
+    @Operation(summary = "Créer une réunion", description = "Crée une nouvelle réunion avec génération automatique de lien Meet")
     public ResponseEntity<ApiResponse<MeetingDTO>> createMeeting(@Valid @RequestBody CreateMeetingRequest request) {
         Long userId = SecurityUtils.getCurrentUserId();
         MeetingDTO meeting = meetingService.createMeeting(userId, request);
-        return ResponseEntity.ok(ApiResponse.success(meeting, "RÃ©union crÃ©Ã©e avec succÃ¨s"));
+        return ResponseEntity.ok(ApiResponse.success(meeting, "Réunion créée avec succès"));
     }
 
     @PutMapping("/{meetingId}/respond")
-    @Operation(summary = "RÃ©pondre Ã  une invitation", description = "Accepter ou refuser une invitation Ã  une rÃ©union")
+    @Operation(summary = "Répondre à une invitation", description = "Accepter ou refuser une invitation à une réunion")
     public ResponseEntity<ApiResponse<MeetingDTO>> respondToMeeting(
             @PathVariable Long meetingId,
             @Valid @RequestBody MeetingResponseRequest request) {
         Long userId = SecurityUtils.getCurrentUserId();
         MeetingDTO meeting = meetingService.respondToMeeting(meetingId, userId, request);
-        String msg = request.getStatus().toString().equals("ACCEPTED") ? "RÃ©union acceptÃ©e" : "RÃ©union refusÃ©e";
+        String msg = request.getStatus().toString().equals("ACCEPTED") ? "Réunion acceptée" : "Réunion refusée";
         return ResponseEntity.ok(ApiResponse.success(meeting, msg));
     }
 
     @PutMapping("/{meetingId}")
-    @Operation(summary = "Modifier une rÃ©union")
+    @Operation(summary = "Modifier une réunion")
     public ResponseEntity<ApiResponse<MeetingDTO>> updateMeeting(
             @PathVariable Long meetingId,
             @Valid @RequestBody UpdateMeetingRequest request) {
         Long userId = SecurityUtils.getCurrentUserId();
         MeetingDTO meeting = meetingService.updateMeeting(meetingId, userId, request);
-        return ResponseEntity.ok(ApiResponse.success(meeting, "RÃ©union modifiÃ©e avec succÃ¨s"));
+        return ResponseEntity.ok(ApiResponse.success(meeting, "Réunion modifiée avec succès"));
     }
 
     @DeleteMapping("/{meetingId}")
-    @Operation(summary = "Annuler une rÃ©union")
+    @Operation(summary = "Annuler une réunion")
     public ResponseEntity<ApiResponse<Void>> deleteMeeting(@PathVariable Long meetingId) {
         Long userId = SecurityUtils.getCurrentUserId();
         meetingService.deleteMeeting(meetingId, userId);
-        return ResponseEntity.ok(ApiResponse.success(null, "RÃ©union annulÃ©e avec succÃ¨s"));
+        return ResponseEntity.ok(ApiResponse.success(null, "Réunion annulée avec succès"));
     }
 
     @GetMapping("/{meetingId}")
-    @Operation(summary = "DÃ©tails d'une rÃ©union")
+    @Operation(summary = "Détails d'une réunion")
     public ResponseEntity<ApiResponse<MeetingDTO>> getMeetingById(@PathVariable Long meetingId) {
         Long userId = SecurityUtils.getCurrentUserId();
         MeetingDTO meeting = meetingService.getMeetingById(meetingId, userId);
-        return ResponseEntity.ok(ApiResponse.success(meeting, "RÃ©union rÃ©cupÃ©rÃ©e"));
+        return ResponseEntity.ok(ApiResponse.success(meeting, "Réunion récupérée"));
     }
 
     @GetMapping("/pfe/{pfeId}")
-    @Operation(summary = "RÃ©unions par PFE")
+    @Operation(summary = "Réunions par PFE")
     public ResponseEntity<ApiResponse<PageResponse<MeetingDTO>>> getMeetingsByPfe(
             @PathVariable Long pfeId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
         Long userId = SecurityUtils.getCurrentUserId();
         PageResponse<MeetingDTO> meetings = meetingService.getMeetingsByPfe(pfeId, userId, page, size);
-        return ResponseEntity.ok(ApiResponse.success(meetings, "RÃ©unions rÃ©cupÃ©rÃ©es"));
+        return ResponseEntity.ok(ApiResponse.success(meetings, "Réunions récupérées"));
     }
 
     @GetMapping("/upcoming")
-    @Operation(summary = "RÃ©unions Ã  venir", description = "RÃ©cupÃ¨re toutes les rÃ©unions Ã  venir de l'utilisateur")
+    @Operation(summary = "Réunions à venir", description = "Récupère toutes les réunions à venir de l'utilisateur")
     public ResponseEntity<ApiResponse<List<MeetingDTO>>> getUpcomingMeetings() {
         Long userId = SecurityUtils.getCurrentUserId();
         List<MeetingDTO> meetings = meetingService.getUpcomingMeetings(userId);
-        return ResponseEntity.ok(ApiResponse.success(meetings, "RÃ©unions Ã  venir rÃ©cupÃ©rÃ©es"));
+        return ResponseEntity.ok(ApiResponse.success(meetings, "Réunions à venir récupérées"));
     }
 
     @PostMapping("/{meetingId}/report")
@@ -98,7 +98,7 @@ public class MeetingController {
             @RequestBody String report) {
         Long userId = SecurityUtils.getCurrentUserId();
         MeetingDTO meeting = meetingService.addReport(meetingId, userId, report);
-        return ResponseEntity.ok(ApiResponse.success(meeting, "Compte-rendu ajoutÃ©"));
+        return ResponseEntity.ok(ApiResponse.success(meeting, "Compte-rendu ajouté"));
     }
 }
 

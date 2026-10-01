@@ -26,9 +26,15 @@ public class LogAuditServiceImpl implements LogAuditService{
         LogAudit log = new LogAudit();
         log.setUtilisateur(utilisateur);
         log.setTypeAction(typeAction);
-        log.setAdresseIp(adresseIp);
+        // MODIF : la colonne adresse_ip est NOT NULL en base, mais 19 appels
+        // à travers AdminServiceImpl/ResponsableServiceImpl/DirecteurServiceImpl
+        // passent null (actions déclenchées côté serveur, sans requête HTTP
+        // avec IP cliente) — ce qui faisait échouer l'action entière avec une
+        // erreur 500 au moment d'écrire le log d'audit. On centralise le
+        // remplacement ici plutôt que de corriger 19 appels séparément.
+        log.setAdresseIp(adresseIp != null ? adresseIp : "system");
         log.setResultat(resultat);
-        log.setDetails(details); 
+        log.setDetails(details);
         logAuditRepo.save(log);
     }
 

@@ -8,9 +8,8 @@ import lombok.*;
 @AllArgsConstructor
 public class ServiceStagesDashboardResponse {
 
-    private long totalConventions;
-    private long conventionsValidees;
-    private long conventionsEnAttente;
-    private long soutenancesPlanifiees;
-    private long dossiersincomplets;
+    private long totalEtudiants;
+    private long stagesEnCours;
+    private long stagesProchesExpiration;
+    private long stagesExpires;
 }

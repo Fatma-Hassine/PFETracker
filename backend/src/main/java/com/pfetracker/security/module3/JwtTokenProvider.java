@@ -86,4 +86,8 @@ public class JwtTokenProvider {
                 .parseClaimsJws(token)               // ✅ API 0.11.5
                 .getBody();                          // ✅ API 0.11.5
     }
+
+    public String generateRefreshToken(Long userId, String email, String role) {
+    return generateToken(userId, email, role);
+}
 }

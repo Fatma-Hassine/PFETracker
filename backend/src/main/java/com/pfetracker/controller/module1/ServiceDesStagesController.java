@@ -10,7 +10,7 @@ import java.util.List;
 
 @RestController("serviceDesStagesControllerM1")
 @RequestMapping("/service-stages")
-@PreAuthorize("hasRole('ROLE_SERVICE_STAGE')")
+@PreAuthorize("hasAuthority('ROLE_SERVICE_STAGE')")
 @RequiredArgsConstructor
 public class ServiceDesStagesController {
 	private final ServiceDesStagesService serviceDesStagesService;

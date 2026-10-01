@@ -21,7 +21,7 @@ public class LogAuditController {
 	    // ── GET /api/logs/departement/{deptId} ── DEPT_MANAGER uniquement ────────
 	    // Le responsable consulte les logs des utilisateurs de son département
 	    @GetMapping("/departement/{deptId}")
-	    @PreAuthorize("hasRole('ROLE_DEPT_MANAGER')")
+	    @PreAuthorize("hasAuthority('ROLE_CHEF_DEPARTEMENT')")
 	    public ResponseEntity<List<LogAuditResponse>> getLogsDepartement(
 	            @PathVariable Long deptId) {
 	        return ResponseEntity.ok(logAuditService.getLogsDepartement(deptId));
@@ -29,7 +29,7 @@ public class LogAuditController {
 
 	    // ── GET /api/logs/utilisateur/{userId} ── DEPT_MANAGER ───────────────────
 	    @GetMapping("/utilisateur/{userId}")
-	    @PreAuthorize("hasRole('ROLE_DEPT_MANAGER')")
+	    @PreAuthorize("hasAuthority('ROLE_CHEF_DEPARTEMENT')")
 	    public ResponseEntity<List<LogAuditResponse>> getLogsUtilisateur(
 	            @PathVariable Long userId) {
 	        return ResponseEntity.ok(logAuditService.getLogsUtilisateur(userId));

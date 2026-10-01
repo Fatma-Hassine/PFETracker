@@ -12,7 +12,7 @@ import java.util.List;
  * Controller des livrables du Module 2.
  */
 @RestController
-@RequestMapping("/api/v2/pfeTrack")
+@RequestMapping("/v2/pfeTrack")
 @RequiredArgsConstructor
 public class DeliverableController {
 

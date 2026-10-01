@@ -32,6 +32,8 @@ import { AdminDashboard } from "./pages/admin/Dashboard";
 import { AdminComptes } from "./pages/admin/Comptes";
 import { AdminAffectations } from "./pages/admin/Affectations";
 import { AdminSupervision } from "./pages/admin/Supervision";
+import { AdminDepartements } from "./pages/admin/Departements";
+import { AdminLogs } from "./pages/admin/Logs";
 import { AdminProfil } from "./pages/admin/Profil";
 
 // Directeur pages
@@ -207,6 +209,14 @@ export const router = createBrowserRouter([
       {
         path: "supervision",
         element: <AdminSupervision />,
+      },
+      {
+        path: "departements",
+        element: <AdminDepartements />,
+      },
+      {
+        path: "logs",
+        element: <AdminLogs />,
       },
       {
         path: "profil",

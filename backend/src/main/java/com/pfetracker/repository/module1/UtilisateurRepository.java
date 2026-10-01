@@ -20,4 +20,5 @@ public interface UtilisateurRepository extends JpaRepository<Utilisateur, Long>{
 	    List<Utilisateur> findByEnabledFalseAndRole(Role role);
 	    List<Utilisateur> findByAccountLockedTrue();
 	    long countByAccountLockedTrue();
+	    List<Utilisateur> findByIdIn(List<Long> ids);
 }
